@@ -1,5 +1,13 @@
 # 🏥 Gestor de Farmacia - Razor Pages
 
+La versión actual utiliza **PostgreSQL / Supabase con Npgsql**. Consulta [configuración, migración desde MySQL y pruebas](database/postgresql/LEEME.md).
+
+```powershell
+dotnet run --launch-profile http
+```
+
+Configura `ConnectionStrings__PostgresConnection` y las variables JWT en `.env` antes de arrancar. Los documentos y scripts MySQL antiguos se conservan como referencia del origen.
+
 ## 📌 Descripción del Proyecto
 
 Sistema web desarrollado con **ASP.NET Core Razor Pages** y **C#** que permite gestionar la información de una farmacia mediante operaciones CRUD.
