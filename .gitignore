@@ -60,3 +60,7 @@ coverage/
 .sandbox-appdata/
 
 .env
+
+# SonarScanner: resultados locales del analisis
+.sonarqube/
+.scannerwork/
