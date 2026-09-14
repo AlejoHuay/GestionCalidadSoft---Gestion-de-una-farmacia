@@ -1,0 +1,62 @@
+OK: 8 tablas
+OK: 24 triggers
+MySQL: 8.4.11
+OK: administrador y clasificaciones iniciales
+OK: consumidor final inicial
+OK: lectura y filtro de usuarios
+OK: busquedas unicas de usuarios
+OK: login real BCrypt + token persistido + JWT
+OK: rechazo de password incorrecto
+OK: insertar clasificacion
+OK: leer y filtrar clasificacion
+OK: clasificacion activa duplicada rechazada
+OK: actualizar clasificacion
+OK: insertar cliente sin correo
+OK: leer y filtrar cliente
+OK: NIT activo duplicado rechazado
+OK: CF repetido compatible con ClienteService
+OK: insertar medicamento
+OK: lectura y join de medicamento
+OK: consultas del dashboard y relaciones
+OK: entrada de stock
+OK: salida sin stock rechazada atomicamente
+OK: CHECK impide stock negativo
+OK: registrar venta real: 
+OK: stock descontado una sola vez
+OK: lecturas de ventas y detalles
+OK: total de venta conciliado
+OK: no se inventa el actor a partir del ultimo editor
+OK: venta conserva copia de datos del cliente
+OK: editar mediante repositorio y restituir/descontar stock: 
+OK: auditoria del detalle eliminado durante edicion
+OK: anular venta y restaurar stock una vez
+OK: anulacion repetida no devuelve stock
+OK: fallo a mitad de transaccion de venta
+OK: rollback de cabecera, detalle, stock y auditoria
+OK: PK impide detalle repetido
+OK: FK impide detalle huerfano
+OK: RESTRICT conserva referencias historicas
+OK: actor y correlacion explicitos
+OK: historial de stock incluye saldo inicial y variaciones
+OK: insertar token SHA256
+OK: leer token por hash y tipo
+OK: consumir token
+OK: fecha de uso del token en UTC
+OK: revocar token de inicio de sesion
+OK: limpiar token obsoleto y auditar DELETE
+OK: cambiar password bcrypt
+OK: registrar cambio de credencial sin copiar hash
+OK: historial sin hashes de credenciales
+OK: historial rechaza UPDATE
+OK: historial rechaza DELETE
+OK: baja logica cliente
+OK: reutilizar NIT de cliente inactivo
+OK: baja logica medicamento
+OK: reutilizar clasificacion inactiva
+OK: bajas logicas identificadas
+OK: conciliacion final
+OK: rol de aplicacion escribe negocio y trigger audita con su definer
+OK: rol de aplicacion sin permiso UPDATE de auditoria
+OK: rol de aplicacion sin permiso DELETE de auditoria
+OK: rol de aplicacion sin lectura de datos personales del historial
+RESULTADO: 60 comprobaciones correctas. Los datos solo existen en la base de pruebas.

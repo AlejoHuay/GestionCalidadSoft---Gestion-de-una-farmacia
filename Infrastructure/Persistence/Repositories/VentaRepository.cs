@@ -1,4 +1,4 @@
-using MySql.Data.MySqlClient;
+using Npgsql;
 using ProyectoArqSoft.Application.Ports.Output;
 using ProyectoArqSoft.Domain.Validators;
 using ProyectoArqSoft.Domain.Models;
@@ -10,11 +10,11 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
 {
     public class VentaRepository : IVentaRepository
     {
-        private readonly string connectionString;
+        private readonly PostgresDatabase database;
 
-        public VentaRepository()
+        public VentaRepository(PostgresDatabase database)
         {
-            connectionString = ConexionStringSingleton.Instancia.CadenaConexion;
+            this.database = database;
         }
 
         public DataTable GetAll()
@@ -26,7 +26,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
         {
             DataTable tabla = new DataTable();
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
 
@@ -52,10 +52,10 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
 
                 query += " ORDER BY v.fecha_hora DESC";
 
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 FiltroSqlHelper.AgregarParametrosLike(command, filtro);
 
-                MySqlDataAdapter adapter = new MySqlDataAdapter(command);
+                NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(command);
                 adapter.Fill(tabla);
             }
 
@@ -79,14 +79,14 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                              FROM venta
                              WHERE id = @id";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
 
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.Parameters.AddWithValue("@id", id);
 
-                using (MySqlDataReader reader = command.ExecuteReader())
+                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
                     if (!reader.Read())
                         return null;
@@ -126,14 +126,14 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                              WHERE id_venta = @id_venta
                              ORDER BY id_medicamento";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
 
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.Parameters.AddWithValue("@id_venta", idVenta);
 
-                using (MySqlDataReader reader = command.ExecuteReader())
+                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -153,10 +153,10 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
 
         public Result RegistrarVenta(Venta venta)
         {
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
-                using MySqlTransaction transaction = connection.BeginTransaction();
+                using NpgsqlTransaction transaction = database.BeginTransaction(connection);
 
                 try
                 {
@@ -171,10 +171,10 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                             FROM cliente
                                             WHERE id = @idCliente AND estado = 1";
 
-                    MySqlCommand commandCliente = new MySqlCommand(queryCliente, connection, transaction);
+                    NpgsqlCommand commandCliente = new NpgsqlCommand(queryCliente, connection, transaction);
                     commandCliente.Parameters.AddWithValue("@idCliente", venta.IdCliente);
 
-                    using (MySqlDataReader reader = commandCliente.ExecuteReader())
+                    using (NpgsqlDataReader reader = commandCliente.ExecuteReader())
                     {
                         if (!reader.Read())
                         {
@@ -189,9 +189,9 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                     string queryVenta = @"INSERT INTO venta
                                         (total, metodo_pago, Cliente_idCliente, usuario_idUsuario, nit, razon_social)
                                         VALUES
-                                        (@total, @metodo_pago, @idCliente, @idUsuario, @nit, @razon_social)";
+                                        (@total, @metodo_pago, @idCliente, @idUsuario, @nit, @razon_social) RETURNING id";
 
-                    MySqlCommand commandVenta = new MySqlCommand(queryVenta, connection, transaction);
+                    NpgsqlCommand commandVenta = new NpgsqlCommand(queryVenta, connection, transaction);
                     commandVenta.Parameters.AddWithValue("@total", venta.Total);
                     commandVenta.Parameters.AddWithValue("@metodo_pago", venta.MetodoPago);
                     commandVenta.Parameters.AddWithValue("@idCliente", venta.IdCliente);
@@ -199,8 +199,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                     commandVenta.Parameters.AddWithValue("@nit", venta.Nit);
                     commandVenta.Parameters.AddWithValue("@razon_social", venta.RazonSocial);
 
-                    commandVenta.ExecuteNonQuery();
-                    int idVenta = Convert.ToInt32(commandVenta.LastInsertedId);
+                    int idVenta = Convert.ToInt32(commandVenta.ExecuteScalar());
 
                     foreach (DetalleVenta detalle in venta.Detalles)
                     {
@@ -216,7 +215,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                                 VALUES
                                                 (@cantidad, @precio_unitario, @id_venta, @id_medicamento)";
 
-                        MySqlCommand commandDetalle = new MySqlCommand(queryDetalle, connection, transaction);
+                        NpgsqlCommand commandDetalle = new NpgsqlCommand(queryDetalle, connection, transaction);
                         commandDetalle.Parameters.AddWithValue("@cantidad", detalle.Cantidad);
                         commandDetalle.Parameters.AddWithValue("@precio_unitario", detalle.PrecioUnitario);
                         commandDetalle.Parameters.AddWithValue("@id_venta", idVenta);
@@ -238,10 +237,10 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
 
         public Result ActualizarVenta(Venta venta)
         {
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
-                using MySqlTransaction transaction = connection.BeginTransaction();
+                using NpgsqlTransaction transaction = database.BeginTransaction(connection);
 
                 try
                 {
@@ -263,10 +262,10 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                     FROM cliente
                                     WHERE id = @idCliente AND estado = 1";
 
-                    MySqlCommand commandCliente = new MySqlCommand(queryCliente, connection, transaction);
+                    NpgsqlCommand commandCliente = new NpgsqlCommand(queryCliente, connection, transaction);
                     commandCliente.Parameters.AddWithValue("@idCliente", venta.IdCliente);
 
-                    using (MySqlDataReader reader = commandCliente.ExecuteReader())
+                    using (NpgsqlDataReader reader = commandCliente.ExecuteReader())
                     {
                         if (!reader.Read())
                         {
@@ -279,6 +278,13 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                     }
 
                     List<DetalleVenta> detallesActuales = GetDetallesByVentaIdTransaccional(connection, transaction, venta.Id);
+                    BloquearMedicamentos(connection, transaction, detallesActuales.Concat(venta.Detalles));
+                    foreach (var detalle in venta.Detalles)
+                    {
+                        var anterior = detallesActuales.Find(d => d.IdMedicamento == detalle.IdMedicamento);
+                        if (anterior != null) detalle.PrecioUnitario = anterior.PrecioUnitario;
+                    }
+                    venta.Total = venta.Detalles.Sum(d => d.Subtotal);
 
                     foreach (DetalleVenta detalleActual in detallesActuales)
                     {
@@ -286,7 +292,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                                 SET stock = stock + @cantidad
                                                 WHERE id = @id_medicamento";
 
-                        MySqlCommand commandRestore = new MySqlCommand(queryRestore, connection, transaction);
+                        NpgsqlCommand commandRestore = new NpgsqlCommand(queryRestore, connection, transaction);
                         commandRestore.Parameters.AddWithValue("@cantidad", detalleActual.Cantidad);
                         commandRestore.Parameters.AddWithValue("@id_medicamento", detalleActual.IdMedicamento);
                         commandRestore.ExecuteNonQuery();
@@ -302,7 +308,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                     string queryDeleteDetalles = @"DELETE FROM detalle_venta
                                                   WHERE id_venta = @id_venta";
 
-                    MySqlCommand commandDeleteDetalles = new MySqlCommand(queryDeleteDetalles, connection, transaction);
+                    NpgsqlCommand commandDeleteDetalles = new NpgsqlCommand(queryDeleteDetalles, connection, transaction);
                     commandDeleteDetalles.Parameters.AddWithValue("@id_venta", venta.Id);
                     commandDeleteDetalles.ExecuteNonQuery();
 
@@ -317,11 +323,11 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                                 WHERE id = @id
                                                   AND estado = 1";
 
-                    MySqlCommand commandUpdateVenta = new MySqlCommand(queryUpdateVenta, connection, transaction);
+                    NpgsqlCommand commandUpdateVenta = new NpgsqlCommand(queryUpdateVenta, connection, transaction);
                     commandUpdateVenta.Parameters.AddWithValue("@total", venta.Total);
                     commandUpdateVenta.Parameters.AddWithValue("@metodo_pago", venta.MetodoPago);
                     commandUpdateVenta.Parameters.AddWithValue("@idCliente", venta.IdCliente);
-                    commandUpdateVenta.Parameters.AddWithValue("@id_usuario_editor", venta.IdUsuarioEditor);
+                    commandUpdateVenta.Parameters.AddWithValue("@id_usuario_editor", (object?)venta.IdUsuarioEditor ?? DBNull.Value);
                     commandUpdateVenta.Parameters.AddWithValue("@id", venta.Id);
                     commandUpdateVenta.Parameters.AddWithValue("@nit", venta.Nit);
                     commandUpdateVenta.Parameters.AddWithValue("@razon_social", venta.RazonSocial);
@@ -347,7 +353,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                                 VALUES
                                                 (@cantidad, @precio_unitario, @id_venta, @id_medicamento)";
 
-                        MySqlCommand commandDetalle = new MySqlCommand(queryDetalle, connection, transaction);
+                        NpgsqlCommand commandDetalle = new NpgsqlCommand(queryDetalle, connection, transaction);
                         commandDetalle.Parameters.AddWithValue("@cantidad", detalle.Cantidad);
                         commandDetalle.Parameters.AddWithValue("@precio_unitario", detalle.PrecioUnitario);
                         commandDetalle.Parameters.AddWithValue("@id_venta", venta.Id);
@@ -368,18 +374,18 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
 
         public Result AnularVentaLogicamente(int idVenta, int idUsuarioEditor)
         {
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
-                using MySqlTransaction transaction = connection.BeginTransaction();
+                using NpgsqlTransaction transaction = database.BeginTransaction(connection);
 
                 try
                 {
                     string queryEstado = @"SELECT estado
                                            FROM venta
-                                           WHERE id = @id";
+                                           WHERE id = @id FOR UPDATE";
 
-                    MySqlCommand commandEstado = new MySqlCommand(queryEstado, connection, transaction);
+                    NpgsqlCommand commandEstado = new NpgsqlCommand(queryEstado, connection, transaction);
                     commandEstado.Parameters.AddWithValue("@id", idVenta);
 
                     object? estadoObj = commandEstado.ExecuteScalar();
@@ -411,7 +417,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                                 SET stock = stock + @cantidad
                                                 WHERE id = @id_medicamento";
 
-                        MySqlCommand commandRestore = new MySqlCommand(queryRestore, connection, transaction);
+                        NpgsqlCommand commandRestore = new NpgsqlCommand(queryRestore, connection, transaction);
                         commandRestore.Parameters.AddWithValue("@cantidad", detalle.Cantidad);
                         commandRestore.Parameters.AddWithValue("@id_medicamento", detalle.IdMedicamento);
                         commandRestore.ExecuteNonQuery();
@@ -424,7 +430,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                            WHERE id = @id
                                              AND estado = 1";
 
-                    MySqlCommand commandAnular = new MySqlCommand(queryAnular, connection, transaction);
+                    NpgsqlCommand commandAnular = new NpgsqlCommand(queryAnular, connection, transaction);
                     commandAnular.Parameters.AddWithValue("@id_usuario_editor", idUsuarioEditor);
                     commandAnular.Parameters.AddWithValue("@id", idVenta);
 
@@ -446,7 +452,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             }
         }
 
-        private Result ValidarVentaParaRegistro(MySqlConnection connection, MySqlTransaction transaction, Venta venta)
+        private Result ValidarVentaParaRegistro(NpgsqlConnection connection, NpgsqlTransaction transaction, Venta venta)
         {
             if (!ClienteActivo(connection, transaction, venta.IdCliente))
                 return Result.Fail("El cliente no existe o está inactivo.");
@@ -457,7 +463,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return ValidarMedicamentosYStock(connection, transaction, venta.Detalles);
         }
 
-        private Result ValidarVentaParaActualizacion(MySqlConnection connection, MySqlTransaction transaction, Venta venta)
+        private Result ValidarVentaParaActualizacion(NpgsqlConnection connection, NpgsqlTransaction transaction, Venta venta)
         {
             if (!ClienteActivo(connection, transaction, venta.IdCliente))
                 return Result.Fail("El cliente no existe o está inactivo.");
@@ -468,13 +474,13 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Result.Ok();
         }
 
-        private Result ValidarVentaEditable(MySqlConnection connection, MySqlTransaction transaction, int idVenta)
+        private Result ValidarVentaEditable(NpgsqlConnection connection, NpgsqlTransaction transaction, int idVenta)
         {
             string query = @"SELECT estado
                              FROM venta
-                             WHERE id = @id";
+                             WHERE id = @id FOR UPDATE";
 
-            MySqlCommand command = new MySqlCommand(query, connection, transaction);
+            NpgsqlCommand command = new NpgsqlCommand(query, connection, transaction);
             command.Parameters.AddWithValue("@id", idVenta);
 
             object? estadoObj = command.ExecuteScalar();
@@ -489,18 +495,27 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Result.Ok();
         }
 
-        private Result ValidarMedicamentosYStock(MySqlConnection connection, MySqlTransaction transaction, List<DetalleVenta> detalles)
+        private static void BloquearMedicamentos(NpgsqlConnection connection, NpgsqlTransaction transaction, IEnumerable<DetalleVenta> detalles)
         {
+            using var command = new NpgsqlCommand("SELECT id FROM medicamento WHERE id = ANY(@ids) ORDER BY id FOR UPDATE", connection, transaction);
+            command.Parameters.AddWithValue("ids", detalles.Select(d => d.IdMedicamento).Distinct().Order().ToArray());
+            using var reader = command.ExecuteReader();
+            while (reader.Read()) { }
+        }
+
+        private Result ValidarMedicamentosYStock(NpgsqlConnection connection, NpgsqlTransaction transaction, List<DetalleVenta> detalles)
+        {
+            BloquearMedicamentos(connection, transaction, detalles);
             foreach (DetalleVenta detalle in detalles)
             {
                 string query = @"SELECT nombre, stock, estado
                                  FROM medicamento
                                  WHERE id = @id_medicamento";
 
-                MySqlCommand command = new MySqlCommand(query, connection, transaction);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection, transaction);
                 command.Parameters.AddWithValue("@id_medicamento", detalle.IdMedicamento);
 
-                using MySqlDataReader reader = command.ExecuteReader();
+                using NpgsqlDataReader reader = command.ExecuteReader();
 
                 if (!reader.Read())
                     return Result.Fail($"El medicamento con id {detalle.IdMedicamento} no existe.");
@@ -533,7 +548,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Result.Ok();
         }
 
-        private Result DescontarStock(MySqlConnection connection, MySqlTransaction transaction, int idMedicamento, int cantidad)
+        private Result DescontarStock(NpgsqlConnection connection, NpgsqlTransaction transaction, int idMedicamento, int cantidad)
         {
             string query = @"UPDATE medicamento
                              SET stock = stock - @cantidad
@@ -541,7 +556,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                AND estado = 1
                                AND stock >= @cantidad";
 
-            MySqlCommand command = new MySqlCommand(query, connection, transaction);
+            NpgsqlCommand command = new NpgsqlCommand(query, connection, transaction);
             command.Parameters.AddWithValue("@cantidad", cantidad);
             command.Parameters.AddWithValue("@id_medicamento", idMedicamento);
 
@@ -553,33 +568,33 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Result.Ok();
         }
 
-        private bool ClienteActivo(MySqlConnection connection, MySqlTransaction transaction, int idCliente)
+        private bool ClienteActivo(NpgsqlConnection connection, NpgsqlTransaction transaction, int idCliente)
         {
             string query = @"SELECT COUNT(*)
                              FROM cliente
                              WHERE id = @id
                                AND estado = 1";
 
-            MySqlCommand command = new MySqlCommand(query, connection, transaction);
+            NpgsqlCommand command = new NpgsqlCommand(query, connection, transaction);
             command.Parameters.AddWithValue("@id", idCliente);
 
             return Convert.ToInt32(command.ExecuteScalar()) > 0;
         }
 
-        private bool UsuarioActivo(MySqlConnection connection, MySqlTransaction transaction, int idUsuario)
+        private bool UsuarioActivo(NpgsqlConnection connection, NpgsqlTransaction transaction, int idUsuario)
         {
             string query = @"SELECT COUNT(*)
                              FROM usuario
                              WHERE id = @id
                                AND activo = 1";
 
-            MySqlCommand command = new MySqlCommand(query, connection, transaction);
+            NpgsqlCommand command = new NpgsqlCommand(query, connection, transaction);
             command.Parameters.AddWithValue("@id", idUsuario);
 
             return Convert.ToInt32(command.ExecuteScalar()) > 0;
         }
 
-        private List<DetalleVenta> GetDetallesByVentaIdTransaccional(MySqlConnection connection, MySqlTransaction transaction, int idVenta)
+        private List<DetalleVenta> GetDetallesByVentaIdTransaccional(NpgsqlConnection connection, NpgsqlTransaction transaction, int idVenta)
         {
             List<DetalleVenta> detalles = new();
 
@@ -590,10 +605,10 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                              FROM detalle_venta
                              WHERE id_venta = @id_venta";
 
-            MySqlCommand command = new MySqlCommand(query, connection, transaction);
+            NpgsqlCommand command = new NpgsqlCommand(query, connection, transaction);
             command.Parameters.AddWithValue("@id_venta", idVenta);
 
-            using MySqlDataReader reader = command.ExecuteReader();
+            using NpgsqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
                 detalles.Add(new DetalleVenta
@@ -611,9 +626,9 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
         {
             string query = "SELECT COUNT(*) FROM venta";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 connection.Open();
 
                 return Convert.ToInt32(command.ExecuteScalar());

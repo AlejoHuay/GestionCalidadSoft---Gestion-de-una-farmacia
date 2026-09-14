@@ -8,6 +8,7 @@ namespace ProyectoArqSoft.Application.Interfaces
     {
         Result CrearUsuario(UsuarioRegistroDto dto, string role, int? idUsuarioSesion);
         Result ActualizarUsuario(UsuarioActualizarDto dto, int? idUsuarioSesion);
+        Result ActualizarAccesoUsuario(UsuarioActualizarDto dto, int? idUsuarioSesion);
         Result EliminarUsuario(int idUsuario, int? idUsuarioSesion);
         UsuarioDto? ObtenerUsuarioPorId(int idUsuario);
         UsuarioDto? ObtenerUsuarioPorEmail(string email);

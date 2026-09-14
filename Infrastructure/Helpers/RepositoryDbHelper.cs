@@ -1,32 +1,36 @@
+using ProyectoArqSoft.Infrastructure.Persistence.Connection;
 using System;
-using MySql.Data.MySqlClient;
+using Npgsql;
 
 namespace ProyectoArqSoft.Infrastructure.Helpers
 {
     public static class RepositoryDbHelper
     {
-        public static int ExecuteNonQuery(string connectionString, MySqlCommand command)
+        public static int ExecuteNonQuery(PostgresDatabase database, NpgsqlCommand command)
         {
-            using var connection = new MySqlConnection(connectionString);
+            using var ownedCommand = command;
+            using var connection = database.CreateConnection();
             command.Connection = connection;
             connection.Open();
-            return command.ExecuteNonQuery();
+            return database.ExecuteNonQuery(command);
         }
 
-        public static object? ExecuteScalar(string connectionString, MySqlCommand command)
+        public static object? ExecuteScalar(PostgresDatabase database, NpgsqlCommand command)
         {
-            using var connection = new MySqlConnection(connectionString);
+            using var ownedCommand = command;
+            using var connection = database.CreateConnection();
             command.Connection = connection;
             connection.Open();
             return command.ExecuteScalar();
         }
 
         public static T? ExecuteReaderSingle<T>(
-            string connectionString,
-            MySqlCommand command,
-            Func<MySqlDataReader, T> mapper)
+            PostgresDatabase database,
+            NpgsqlCommand command,
+            Func<NpgsqlDataReader, T> mapper)
         {
-            using var connection = new MySqlConnection(connectionString);
+            using var ownedCommand = command;
+            using var connection = database.CreateConnection();
             command.Connection = connection;
             connection.Open();
 

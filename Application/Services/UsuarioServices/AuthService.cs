@@ -53,6 +53,8 @@ namespace ProyectoArqSoft.Application.Services
 
             (Result resultado, string token) = _tokenService.GenerarToken(tokenGeneracionDto, out string? tokenPlano);
 
+            if (!resultado.IsSuccess) return resultado;
+
             respuesta = new UsuarioLoginResponseDto
             {
                 IdUsuario = usuario.IdUsuario,

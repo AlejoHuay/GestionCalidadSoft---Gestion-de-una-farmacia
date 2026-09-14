@@ -1,3 +1,5 @@
+using Npgsql;
+using ProyectoArqSoft.Infrastructure.Persistence.Connection;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +19,7 @@ using ClienteEntidad = ProyectoArqSoft.Domain.Models.Cliente;
 using MedicamentoEntidad = ProyectoArqSoft.Domain.Models.Medicamento;
 using VentaEntidad = ProyectoArqSoft.Domain.Models.Venta;
 
-Env.Load();
+Env.NoClobber().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,21 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
+var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
+if (string.IsNullOrWhiteSpace(postgresConnection))
+    throw new InvalidOperationException("Configura ConnectionStrings__PostgresConnection en .env.");
+var postgresSettings = new NpgsqlConnectionStringBuilder(postgresConnection)
+{
+    SearchPath = "farmacia", Timezone = "UTC", ApplicationName = "VitalCare"
+};
+if (postgresSettings.Host?.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase) == true)
+{
+    postgresSettings.SslMode = SslMode.VerifyFull;
+    if (string.IsNullOrWhiteSpace(postgresSettings.RootCertificate))
+        postgresSettings.RootCertificate = Path.Combine(builder.Environment.ContentRootPath, "database/postgresql/certs/supabase-ca.crt");
+}
+builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(postgresSettings.ConnectionString));
+builder.Services.AddScoped<PostgresDatabase>();
 
 
 // =========================

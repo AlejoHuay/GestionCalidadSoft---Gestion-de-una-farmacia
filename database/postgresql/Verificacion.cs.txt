@@ -1,0 +1,225 @@
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using ProyectoArqSoft.Infrastructure.Persistence.Connection;
+using ProyectoArqSoft.Application.Interfaces;
+using ProyectoArqSoft.Domain.Validators;
+using Npgsql;
+using ProyectoArqSoft.Infrastructure.Persistence.Repositories;
+using ProyectoArqSoft.Infrastructure.Helpers;
+using ProyectoArqSoft.Application.Services;
+using ProyectoArqSoft.Domain.Models;
+using ProyectoArqSoft.Domain.DTOs;
+using System.Text.Json;
+
+var root = Path.GetFullPath(args[0]);
+var connectionString = Environment.GetEnvironmentVariable("VITALCARE_TEST_CONNECTION")!;
+var settings = new NpgsqlConnectionStringBuilder(connectionString);
+if (settings.Host is not ("127.0.0.1" or "localhost" or "::1") || settings.Database != "farmacia_pruebas")
+    throw new Exception("La verificacion solo admite localhost y la base farmacia_pruebas en un servidor de pruebas.");
+settings.SearchPath = "farmacia";
+settings.Timezone="UTC";
+connectionString = settings.ConnectionString;
+using var db = new NpgsqlConnection(connectionString);
+db.Open();
+long Scalar(string sql) => Convert.ToInt64(new NpgsqlCommand(sql, db).ExecuteScalar());
+void Exec(string sql) => new NpgsqlCommand(sql, db).ExecuteNonQuery();
+var checks = 0;
+void Check(bool condition, string name)
+{
+    if (!condition) throw new Exception("FALLO: " + name);
+    Console.WriteLine("OK: " + name);
+    checks++;
+}
+void Rejected(Action action, string name, string expectedNumber = "23505")
+{
+    try { action(); }
+    catch (PostgresException ex) when (ex.SqlState == expectedNumber) { Check(true, name); return; }
+    throw new Exception("FALLO: se acepto una operacion invalida: " + name);
+}
+if (Scalar("SELECT COUNT(*) FROM usuario") != 0 || Scalar("SELECT COUNT(*) FROM auditoria") != 0)
+    throw new Exception("Usa una instalacion de pruebas nueva: esta base ya contiene datos.");
+Check(Scalar("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='farmacia' AND table_type='BASE TABLE'") == 9, "9 tablas incluidas auditoria e historial MySQL");
+Check(Scalar("SELECT count(*) FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='farmacia' AND NOT t.tgisinternal") == 14, "14 triggers de auditoria y fechas");
+Console.WriteLine("PostgreSQL: " + new NpgsqlCommand("SELECT VERSION()", db).ExecuteScalar());
+
+var password = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24));
+var hash = PasswordHelper.Hash(password);
+using(var seed = new NpgsqlCommand(@"INSERT INTO usuario(nombres,apellido_paterno,ci,ci_extencion,telefono,email,user_name,password_hash,role,must_change_password)
+VALUES('Admin','Prueba','12345678','LP','76543210','admin@vitalcare.local','admin',@hash,'Admin',0)",db))
+{ seed.Parameters.AddWithValue("hash",hash); seed.ExecuteNonQuery(); }
+Exec("INSERT INTO clasificacion(nombre,origen,descripcion) SELECT 'Clase '||i,'General','Inicial' FROM generate_series(1,7) i");
+Exec("INSERT INTO cliente(nit,razon_social) VALUES('CF','Consumidor Final')");
+var adminId = (int)Scalar("SELECT id FROM usuario WHERE user_name='admin'");
+Check(adminId > 0 && Scalar("SELECT COUNT(*) FROM clasificacion") == 7, "administrador y clasificaciones iniciales");
+Check(Scalar("SELECT COUNT(*) FROM cliente WHERE nit='CF'") == 1, "consumidor final inicial");
+
+using var dataSource = NpgsqlDataSource.Create(connectionString);
+var accessor = new HttpContextAccessor();
+var database = new PostgresDatabase(dataSource,accessor);
+{
+    var usuarios = new UsuarioRepository(database);
+    var tokens = new UsuarioTokenRepository(database);
+    var clientes = new ClienteRepository(database);
+    var clasificaciones = new ClasificacionRepository(database);
+    var medicamentos = new MedicamentoRepository(database);
+    var ventas = new VentaRepository(database);
+    Check(usuarios.GetById(adminId)?.Role == "Admin" && usuarios.GetAll("admin").Rows.Count == 1, "lectura y filtro de usuarios");
+    Check(usuarios.GetByEmail("admin@vitalcare.local") != null && usuarios.ExisteUserName("admin"), "busquedas unicas de usuarios");
+    Environment.SetEnvironmentVariable("JWT_KEY", Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)));
+    Environment.SetEnvironmentVariable("JWT_ISSUER", "vitalcare-test");
+    Environment.SetEnvironmentVariable("JWT_AUDIENCE", "vitalcare-test");
+    var auth = new AuthService(usuarios, new TokenService(tokens));
+    var login = auth.IniciarSesion(new UsuarioLoginRequestDto { EmailOUserName = "admin", Password = password }, out var respuesta);
+    Check(login.IsSuccess && respuesta?.Token.Split('.').Length == 3, "login real BCrypt + token persistido + JWT");
+    var badLogin = auth.IniciarSesion(new UsuarioLoginRequestDto { EmailOUserName = "admin", Password = "incorrecta123" }, out _);
+    Check(!badLogin.IsSuccess, "rechazo de password incorrecto");
+
+    var clase = new Clasificacion("Prueba Auditoria", "General", "Clasificacion para prueba") { IdUsuario = adminId };
+    Check(clasificaciones.Insert(clase) == 1, "insertar clasificacion");
+    clase.Id = (int)Scalar("SELECT id FROM clasificacion WHERE nombre='Prueba Auditoria' AND estado=1");
+    Check(clasificaciones.GetById(clase.Id) != null && clasificaciones.GetAll("Prueba").Rows.Count == 1, "leer y filtrar clasificacion");
+    Rejected(() => clasificaciones.Insert(clase), "clasificacion activa duplicada rechazada");
+    clase.Descripcion = "Descripcion modificada";
+    Check(clasificaciones.Update(clase) == 1, "actualizar clasificacion");
+
+    var cliente = new Cliente("12345678", "Cliente Prueba", "") { IdUsuario = adminId };
+    Check(clientes.Insert(cliente) == 1, "insertar cliente sin correo");
+    cliente.IdCliente = (int)Scalar("SELECT id FROM cliente WHERE nit='12345678' AND estado=1");
+    Check(clientes.GetById(cliente.IdCliente) != null && clientes.GetAll("12345678").Rows.Count == 1, "leer y filtrar cliente");
+    Rejected(() => clientes.Insert(cliente), "NIT activo duplicado rechazado");
+    Check(clientes.Insert(new Cliente("CF", "Consumidor Final", "") { IdUsuario = adminId }) == 1, "CF repetido compatible con ClienteService");
+
+    var medicamento = new Medicamento("Medicamento Prueba", "Tabletas", clase.Id, "500 mg", 3.50m, 20) { IdUsuario = adminId };
+    Check(medicamentos.Insert(medicamento) == 1, "insertar medicamento");
+    medicamento.Id = (int)Scalar("SELECT id FROM medicamento WHERE nombre='Medicamento Prueba'");
+    Check(medicamentos.GetById(medicamento.Id)?.Stock == 20 && medicamentos.GetAll("Prueba").Rows.Count == 1, "lectura y join de medicamento");
+    Check(medicamentos.GetDestacados().Rows.Count > 0 && clasificaciones.TieneMedicamentosActivosAsociados(clase.Id), "consultas del dashboard y relaciones");
+    Check(medicamentos.UpdateStock(medicamento.Id, 5, true, adminId) == 1, "entrada de stock");
+    Check(medicamentos.UpdateStock(medicamento.Id, 100, false, adminId) == 0, "salida sin stock rechazada atomicamente");
+    Rejected(() => Exec($"UPDATE medicamento SET stock=-1 WHERE id={medicamento.Id}"), "CHECK impide stock negativo", "23514");
+
+    var venta = new Venta { IdCliente = cliente.IdCliente, IdUsuario = adminId, MetodoPago = "Efectivo", Total = 7m,
+        Detalles = new() { new DetalleVenta { IdMedicamento = medicamento.Id, Cantidad = 2, PrecioUnitario = 3.50m } } };
+    var result = ventas.RegistrarVenta(venta);
+    Check(result.IsSuccess, "registrar venta real: " + result.Error);
+    venta.Id = (int)Scalar("SELECT MAX(id) FROM venta");
+    Check(medicamentos.GetById(medicamento.Id)?.Stock == 23, "stock descontado una sola vez");
+    Check(ventas.GetAll().Rows.Count == 1 && ventas.GetById(venta.Id)?.Nit == "12345678" && ventas.GetDetallesByVentaId(venta.Id).Count == 1, "lecturas de ventas y detalles");
+    Check(Scalar("SELECT COUNT(*) FROM vw_ventas_descuadradas") == 0, "total de venta conciliado");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE tabla='medicamento' AND usuario_app_id IS NOT NULL") == 0, "no se inventa el actor a partir del ultimo editor");
+    cliente.Nit = "87654321";
+    cliente.RazonSocial = "Cliente Modificado";
+    Check(clientes.Update(cliente) == 1 && ventas.GetById(venta.Id)?.Nit == "12345678", "venta conserva copia de datos del cliente");
+    venta.IdUsuarioEditor = adminId;
+    venta.Detalles[0].Cantidad = 4;
+    venta.Total = 14m;
+    var updated = ventas.ActualizarVenta(venta);
+    Check(updated.IsSuccess && medicamentos.GetById(medicamento.Id)?.Stock == 21, "editar mediante repositorio y restituir/descontar stock: " + updated.Error);
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE tabla='detalle_venta' AND operacion='DELETE'") > 0, "auditoria del detalle eliminado durante edicion");
+    Check(ventas.AnularVentaLogicamente(venta.Id, adminId).IsSuccess && medicamentos.GetById(medicamento.Id)?.Stock == 25, "anular venta y restaurar stock una vez");
+    Check(!ventas.AnularVentaLogicamente(venta.Id, adminId).IsSuccess && medicamentos.GetById(medicamento.Id)?.Stock == 25, "anulacion repetida no devuelve stock");
+
+    var auditBefore = Scalar("SELECT COUNT(*) FROM auditoria");
+    var salesBefore = Scalar("SELECT COUNT(*) FROM venta");
+    var invalidSale = new Venta { IdCliente = cliente.IdCliente, IdUsuario = adminId, MetodoPago = "QR", Total = 100m,
+        Detalles = new() {
+            new DetalleVenta { IdMedicamento = medicamento.Id, Cantidad = 20, PrecioUnitario = 3.50m },
+            new DetalleVenta { IdMedicamento = medicamento.Id, Cantidad = 20, PrecioUnitario = 3.50m }
+        } };
+    Check(!ventas.RegistrarVenta(invalidSale).IsSuccess, "fallo a mitad de transaccion de venta");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria") == auditBefore && Scalar("SELECT COUNT(*) FROM venta") == salesBefore
+        && medicamentos.GetById(medicamento.Id)?.Stock == 25, "rollback de cabecera, detalle, stock y auditoria");
+    Rejected(() => Exec($"INSERT INTO detalle_venta VALUES ({venta.Id}, {medicamento.Id}, 1, 3.50)"), "PK impide detalle repetido");
+    Rejected(() => Exec($"INSERT INTO detalle_venta VALUES (2147483647, {medicamento.Id}, 1, 3.50)"), "FK impide detalle huerfano", "23503");
+    Rejected(() => Exec($"DELETE FROM usuario WHERE id={adminId}"), "RESTRICT conserva referencias historicas", "23503");
+
+    // Contexto en la MISMA conexion de la escritura: permite correlacion y actor explicito.
+    Exec($"BEGIN; SELECT set_config('app.usuario_id','{adminId}',true),set_config('app.solicitud_id','prueba-contexto',true),set_config('app.motivo','Ajuste verificado',true)");
+    Exec($"UPDATE medicamento SET stock=stock+1 WHERE id={medicamento.Id}");
+    Check(Scalar($"SELECT COUNT(*) FROM auditoria WHERE solicitud_id='prueba-contexto' AND usuario_app_id={adminId}") == 1, "actor y correlacion explicitos");
+    Exec("COMMIT");
+    Check(Scalar($"SELECT SUM(variacion) FROM vw_auditoria_stock WHERE id_medicamento={medicamento.Id}") == 26, "historial de stock incluye saldo inicial y variaciones");
+
+    var tokenHash = TokenHelper.GenerarTokenHash("token-prueba-unico");
+    Check(tokens.Insert(new UsuarioToken(adminId, tokenHash, "ACTIVATION_CUENTA", DateTime.UtcNow.AddHours(1))) == 1, "insertar token SHA256");
+    var token = tokens.GetTokenActivo(tokenHash, "ACTIVATION_CUENTA")!;
+    Check(token != null && tokens.GetByTokenHash(tokenHash) != null, "leer token por hash y tipo");
+    Check(tokens.MarcarComoUsado(token!.IdUsuarioToken) == 1 && tokens.GetTokenActivo(tokenHash, "ACTIVATION_CUENTA") == null, "consumir token");
+    Check(Math.Abs((tokens.GetByTokenHash(tokenHash)!.FechaUso!.Value - DateTime.UtcNow).TotalSeconds) < 30, "fecha de uso del token en UTC");
+    Check(tokens.RevocarTokensActivos(adminId, "INICIO_SESION") == 1, "revocar token de inicio de sesion");
+    var expired = new UsuarioToken(adminId, TokenHelper.GenerarTokenHash("token-obsoleto"), "RESET_PASSWORD", DateTime.UtcNow.AddDays(-10)) { FechaCreacion = DateTime.UtcNow.AddDays(-11) };
+    Check(tokens.Insert(expired) == 1 && tokens.EliminarTokensObsoletos(1) == 1, "limpiar token obsoleto y auditar DELETE");
+    Check(usuarios.CambiarPassword(adminId, PasswordHelper.Hash("CambioSoloPrueba123!"), false) == 1, "cambiar password bcrypt");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE tabla='usuario' AND credencial_modificada=1") == 1, "registrar cambio de credencial sin copiar hash");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE datos_anteriores ?| ARRAY['password_hash','token_hash'] OR datos_nuevos ?| ARRAY['password_hash','token_hash']") == 0, "historial sin hashes de credenciales");
+    Rejected(() => Exec("UPDATE auditoria SET motivo='alterado' WHERE id=(SELECT min(id) FROM auditoria)"), "historial rechaza UPDATE", "P0001");
+    Rejected(() => Exec("DELETE FROM auditoria WHERE id=(SELECT min(id) FROM auditoria)"), "historial rechaza DELETE", "P0001");
+    Check(clientes.Delete(cliente) == 1 && clientes.GetById(cliente.IdCliente) == null, "baja logica cliente");
+    Check(clientes.Insert(new Cliente("87654321", "Cliente Nuevo", "") { IdUsuario = adminId }) == 1, "reutilizar NIT de cliente inactivo");
+    Check(medicamentos.Delete(medicamento) == 1 && medicamentos.GetAll().Rows.Count == 0, "baja logica medicamento");
+    Check(clasificaciones.Delete(clase) == 1 && clasificaciones.Insert(clase) == 1, "reutilizar clasificacion inactiva");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE operacion='BAJA_LOGICA'") >= 4, "bajas logicas identificadas");
+    Check(Scalar("SELECT COUNT(*) FROM vw_ventas_descuadradas") == 0, "conciliacion final");
+
+    Exec(File.ReadAllText(Path.Combine(root,"database/postgresql/03_roles.sql")));
+    var appPassword = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24));
+    Exec($"CREATE ROLE vitalcare_verificacion LOGIN PASSWORD '{appPassword}' IN ROLE vitalcare_app");
+    var appSettings = new NpgsqlConnectionStringBuilder(connectionString) { Username="vitalcare_verificacion",Password=appPassword };
+    using(var appDb=new NpgsqlConnection(appSettings.ConnectionString))
+    {
+        appDb.Open();
+        var before=Scalar("SELECT count(*) FROM auditoria");
+        new NpgsqlCommand("INSERT INTO cliente(nit,razon_social) VALUES('permiso','Prueba permisos')",appDb).ExecuteNonQuery();
+        Check(Scalar("SELECT count(*) FROM auditoria")==before+1,"rol limitado escribe y audita mediante SECURITY DEFINER");
+        Rejected(()=>new NpgsqlCommand("SELECT * FROM auditoria",appDb).ExecuteNonQuery(),"rol app sin lectura de auditoria","42501");
+        Rejected(()=>new NpgsqlCommand("UPDATE auditoria SET motivo='alterado'",appDb).ExecuteNonQuery(),"rol app sin UPDATE auditoria","42501");
+        Rejected(()=>new NpgsqlCommand("DELETE FROM auditoria",appDb).ExecuteNonQuery(),"rol app sin DELETE auditoria","42501");
+    }
+    Exec("DROP ROLE vitalcare_verificacion");
+
+    Check(usuarios.GetByEmail("ADMIN@VITALCARE.LOCAL")!=null,"email sin distinguir mayusculas");
+    Check(clasificaciones.GetAll("prueba audítoría").Rows.Count==1,"busqueda sin distinguir tildes");
+    // Verifica que el pool no conserva el actor de la solicitud anterior.
+    accessor.HttpContext=new DefaultHttpContext { User=new ClaimsPrincipal(new ClaimsIdentity(new[]{new Claim(ClaimTypes.NameIdentifier,adminId.ToString())},"prueba")),TraceIdentifier="actor-autenticado" };
+    clientes.Insert(new Cliente("actor1","Actor autenticado","") { IdUsuario=adminId });
+    Check(Scalar($"SELECT count(*) FROM auditoria WHERE solicitud_id='actor-autenticado' AND usuario_app_id={adminId}")==1,"actor desde identidad autenticada");
+    accessor.HttpContext=null;
+    clientes.Insert(new Cliente("actor2","Sin actor","") { IdUsuario=adminId });
+    Check(Scalar("SELECT count(*) FROM auditoria WHERE tabla='cliente' AND datos_nuevos->>'nit'='actor2' AND usuario_app_id IS NULL")==1,"actor no se filtra entre conexiones del pool");
+
+    var claseId=(int)Scalar("SELECT min(id) FROM clasificacion WHERE estado=1");
+    var medConcurrente=new Medicamento("Concurrencia","Tableta",claseId,"10 mg",2m,10) { IdUsuario=adminId };
+    medicamentos.Insert(medConcurrente);
+    medConcurrente.Id=(int)Scalar("SELECT id FROM medicamento WHERE nombre='Concurrencia'");
+    int clienteId=(int)Scalar("SELECT min(id) FROM cliente WHERE estado=1");
+    Venta Nueva()=>new() {IdCliente=clienteId,IdUsuario=adminId,MetodoPago="QR",Total=12m,Detalles=[new(){IdMedicamento=medConcurrente.Id,Cantidad=6,PrecioUnitario=2m}]};
+    var concurrentes=Task.WhenAll(Task.Run(()=>ventas.RegistrarVenta(Nueva())),Task.Run(()=>ventas.RegistrarVenta(Nueva()))).GetAwaiter().GetResult();
+    Check(concurrentes.Count(r=>r.IsSuccess)==1 && medicamentos.GetById(medConcurrente.Id)!.Stock==4,"ventas simultaneas sin sobreventa");
+    var idConcurrente=(int)Scalar("SELECT max(id) FROM venta");
+    var anulaciones=Task.WhenAll(Task.Run(()=>ventas.AnularVentaLogicamente(idConcurrente,adminId)),Task.Run(()=>ventas.AnularVentaLogicamente(idConcurrente,adminId))).GetAwaiter().GetResult();
+    Check(anulaciones.Count(r=>r.IsSuccess)==1 && medicamentos.GetById(medConcurrente.Id)!.Stock==10,"anulaciones simultaneas devuelven stock una vez");
+    Check(Scalar("SELECT count(*) FROM vw_ventas_descuadradas")==0,"conciliacion despues de concurrencia");
+    var usuarioService = new UsuarioService(usuarios,new UsuarioValidacionGeneral(usuarios),new TokenService(tokens),new NoEnviarCorreo());
+    var acceso=usuarioService.ActualizarAccesoUsuario(new UsuarioActualizarDto {IdUsuario=adminId,Email="admin-nuevo@vitalcare.local",Role="Admin",Activo=1},adminId);
+    Check(acceso.IsSuccess && usuarios.GetById(adminId)!.Nombres=="Admin","edicion de acceso conserva datos personales");
+    Check(!usuarioService.ActualizarAccesoUsuario(new UsuarioActualizarDto {IdUsuario=adminId,Email="invalido",Role="Admin"},adminId).IsSuccess,"edicion rechaza correo invalido");
+    var tokenActivacion=new UsuarioToken(adminId,TokenHelper.GenerarTokenHash("activacion-atomica"),TipoTokenConstantes.ActivacionCuenta,DateTime.UtcNow.AddHours(1));
+    tokens.Insert(tokenActivacion);
+    tokenActivacion=tokens.GetByTokenHash(tokenActivacion.TokenHash)!;
+    var passwordFinal=PasswordHelper.Hash("FinalSoloPrueba123!");
+    var activaciones=Task.WhenAll(Task.Run(()=>usuarios.ActivarCuentaConToken(adminId,tokenActivacion.IdUsuarioToken,passwordFinal)),Task.Run(()=>usuarios.ActivarCuentaConToken(adminId,tokenActivacion.IdUsuarioToken,passwordFinal))).GetAwaiter().GetResult();
+    Check(activaciones.Sum()==1 && tokens.GetByTokenHash(tokenActivacion.TokenHash)!.Usado==1 && usuarios.GetById(adminId)!.PasswordHash==passwordFinal,"activacion y consumo de token atomicos ante concurrencia");
+    var ventaService=new VentaService(ventas,medicamentos,new VentaValidacion());
+    var creada=ventaService.Crear(clienteId,adminId,"Efectivo",[new(){IdMedicamento=medConcurrente.Id,Cantidad=8}]);
+    var editarId=(int)Scalar("SELECT max(id) FROM venta");
+    Exec($"UPDATE medicamento SET precio=3 WHERE id={medConcurrente.Id}");
+    var editada=ventaService.Actualizar(editarId,clienteId,"QR",[new(){IdMedicamento=medConcurrente.Id,Cantidad=9}],adminId);
+    Check(creada.IsSuccess && editada.IsSuccess && medicamentos.GetById(medConcurrente.Id)!.Stock==1 && ventas.GetById(editarId)!.Total==18m,"editar conserva precio historico y considera stock devuelto");
+    Console.WriteLine($"RESULTADO: {checks} comprobaciones correctas. Solo base LOCAL de pruebas.");
+}
+
+sealed class NoEnviarCorreo : IEmailService
+{
+    public Result EnviarCorreoActivacionCuenta(string emailDestino,string nombres,string userName,string passwordTemporal,string enlaceActivacion)
+        => throw new InvalidOperationException("Las pruebas no envian correo.");
+}

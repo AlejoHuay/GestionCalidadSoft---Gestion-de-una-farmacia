@@ -1,0 +1,190 @@
+using MySql.Data.MySqlClient;
+using ProyectoArqSoft.Infrastructure.Persistence.Repositories;
+using ProyectoArqSoft.Infrastructure.Helpers;
+using ProyectoArqSoft.Application.Services;
+using ProyectoArqSoft.Domain.Models;
+using ProyectoArqSoft.Domain.DTOs;
+using System.Text.Json;
+
+var root = Path.GetFullPath(args[0]);
+var connectionString = Environment.GetEnvironmentVariable("VITALCARE_TEST_CONNECTION")!;
+var settings = new MySqlConnectionStringBuilder(connectionString);
+if (settings.Server is not ("127.0.0.1" or "localhost" or "::1") || settings.Database != "farmacia")
+    throw new Exception("La verificacion solo admite localhost y la base farmacia en un servidor de pruebas.");
+settings.AllowUserVariables = true;
+connectionString = settings.ConnectionString;
+using var db = new MySqlConnection(connectionString);
+db.Open();
+long Scalar(string sql) => Convert.ToInt64(new MySqlCommand(sql, db).ExecuteScalar());
+void Exec(string sql) => new MySqlCommand(sql, db).ExecuteNonQuery();
+var checks = 0;
+void Check(bool condition, string name)
+{
+    if (!condition) throw new Exception("FALLO: " + name);
+    Console.WriteLine("OK: " + name);
+    checks++;
+}
+void Rejected(Action action, string name, int expectedNumber = 1062)
+{
+    try { action(); }
+    catch (MySqlException ex) when (ex.Number == expectedNumber) { Check(true, name); return; }
+    throw new Exception("FALLO: se acepto una operacion invalida: " + name);
+}
+if (Scalar("SELECT COUNT(*) FROM usuario") != 0 || Scalar("SELECT COUNT(*) FROM auditoria") != 0)
+    throw new Exception("Usa una instalacion de pruebas nueva: esta base ya contiene datos.");
+Check(Scalar("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='farmacia' AND table_type='BASE TABLE'") == 8, "8 tablas");
+Check(Scalar("SELECT COUNT(*) FROM information_schema.triggers WHERE trigger_schema='farmacia'") == 24, "24 triggers");
+Console.WriteLine("MySQL: " + new MySqlCommand("SELECT VERSION()", db).ExecuteScalar());
+
+var password = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24));
+var hash = PasswordHelper.Hash(password);
+using (var setHash = new MySqlCommand("SET @admin_password_hash = @hash", db))
+{
+    setHash.Parameters.AddWithValue("@hash", hash);
+    setHash.ExecuteNonQuery();
+}
+new MySqlScript(db, File.ReadAllText(Path.Combine(root, "database/02_datos_iniciales.sql"))).Execute();
+var adminId = (int)Scalar("SELECT id FROM usuario WHERE user_name='admin'");
+Check(adminId > 0 && Scalar("SELECT COUNT(*) FROM clasificacion") == 7, "administrador y clasificaciones iniciales");
+Check(Scalar("SELECT COUNT(*) FROM cliente WHERE nit='CF'") == 1, "consumidor final inicial");
+
+// Los repositorios crean su propia configuracion desde el directorio actual.
+// Se escribe SOLO en obj, sin cambiar appsettings.json del proyecto.
+var runtime = Path.Combine(root, "obj/DatabaseVerification/runtime");
+Directory.CreateDirectory(runtime);
+File.WriteAllText(Path.Combine(runtime, "appsettings.json"), JsonSerializer.Serialize(new
+{
+    ConnectionStrings = new { MySqlConnection = connectionString }
+}));
+var previousDirectory = Directory.GetCurrentDirectory();
+Directory.SetCurrentDirectory(runtime);
+try
+{
+    var usuarios = new UsuarioRepository();
+    var tokens = new UsuarioTokenRepository();
+    var clientes = new ClienteRepository();
+    var clasificaciones = new ClasificacionRepository();
+    var medicamentos = new MedicamentoRepository();
+    var ventas = new VentaRepository();
+    Check(usuarios.GetById(adminId)?.Role == "Admin" && usuarios.GetAll("admin").Rows.Count == 1, "lectura y filtro de usuarios");
+    Check(usuarios.GetByEmail("admin@vitalcare.local") != null && usuarios.ExisteUserName("admin"), "busquedas unicas de usuarios");
+    Environment.SetEnvironmentVariable("JWT_KEY", Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)));
+    Environment.SetEnvironmentVariable("JWT_ISSUER", "vitalcare-test");
+    Environment.SetEnvironmentVariable("JWT_AUDIENCE", "vitalcare-test");
+    var auth = new AuthService(usuarios, new TokenService(tokens));
+    var login = auth.IniciarSesion(new UsuarioLoginRequestDto { EmailOUserName = "admin", Password = password }, out var respuesta);
+    Check(login.IsSuccess && respuesta?.Token.Split('.').Length == 3, "login real BCrypt + token persistido + JWT");
+    var badLogin = auth.IniciarSesion(new UsuarioLoginRequestDto { EmailOUserName = "admin", Password = "incorrecta123" }, out _);
+    Check(!badLogin.IsSuccess, "rechazo de password incorrecto");
+
+    var clase = new Clasificacion("Prueba Auditoria", "General", "Clasificacion para prueba") { IdUsuario = adminId };
+    Check(clasificaciones.Insert(clase) == 1, "insertar clasificacion");
+    clase.Id = (int)Scalar("SELECT id FROM clasificacion WHERE nombre='Prueba Auditoria' AND estado=1");
+    Check(clasificaciones.GetById(clase.Id) != null && clasificaciones.GetAll("Prueba").Rows.Count == 1, "leer y filtrar clasificacion");
+    Rejected(() => clasificaciones.Insert(clase), "clasificacion activa duplicada rechazada");
+    clase.Descripcion = "Descripcion modificada";
+    Check(clasificaciones.Update(clase) == 1, "actualizar clasificacion");
+
+    var cliente = new Cliente("12345678", "Cliente Prueba", "") { IdUsuario = adminId };
+    Check(clientes.Insert(cliente) == 1, "insertar cliente sin correo");
+    cliente.IdCliente = (int)Scalar("SELECT id FROM cliente WHERE nit='12345678' AND estado=1");
+    Check(clientes.GetById(cliente.IdCliente) != null && clientes.GetAll("12345678").Rows.Count == 1, "leer y filtrar cliente");
+    Rejected(() => clientes.Insert(cliente), "NIT activo duplicado rechazado");
+    Check(clientes.Insert(new Cliente("CF", "Consumidor Final", "") { IdUsuario = adminId }) == 1, "CF repetido compatible con ClienteService");
+
+    var medicamento = new Medicamento("Medicamento Prueba", "Tabletas", clase.Id, "500 mg", 3.50m, 20) { IdUsuario = adminId };
+    Check(medicamentos.Insert(medicamento) == 1, "insertar medicamento");
+    medicamento.Id = (int)Scalar("SELECT id FROM medicamento WHERE nombre='Medicamento Prueba'");
+    Check(medicamentos.GetById(medicamento.Id)?.Stock == 20 && medicamentos.GetAll("Prueba").Rows.Count == 1, "lectura y join de medicamento");
+    Check(medicamentos.GetDestacados().Rows.Count > 0 && clasificaciones.TieneMedicamentosActivosAsociados(clase.Id), "consultas del dashboard y relaciones");
+    Check(medicamentos.UpdateStock(medicamento.Id, 5, true, adminId) == 1, "entrada de stock");
+    Check(medicamentos.UpdateStock(medicamento.Id, 100, false, adminId) == 0, "salida sin stock rechazada atomicamente");
+    Rejected(() => Exec($"UPDATE medicamento SET stock=-1 WHERE id={medicamento.Id}"), "CHECK impide stock negativo", 3819);
+
+    var venta = new Venta { IdCliente = cliente.IdCliente, IdUsuario = adminId, MetodoPago = "Efectivo", Total = 7m,
+        Detalles = new() { new DetalleVenta { IdMedicamento = medicamento.Id, Cantidad = 2, PrecioUnitario = 3.50m } } };
+    var result = ventas.RegistrarVenta(venta);
+    Check(result.IsSuccess, "registrar venta real: " + result.Error);
+    venta.Id = (int)Scalar("SELECT MAX(id) FROM venta");
+    Check(medicamentos.GetById(medicamento.Id)?.Stock == 23, "stock descontado una sola vez");
+    Check(ventas.GetAll().Rows.Count == 1 && ventas.GetById(venta.Id)?.Nit == "12345678" && ventas.GetDetallesByVentaId(venta.Id).Count == 1, "lecturas de ventas y detalles");
+    Check(Scalar("SELECT COUNT(*) FROM vw_ventas_descuadradas") == 0, "total de venta conciliado");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE tabla='medicamento' AND usuario_app_id IS NOT NULL") == 0, "no se inventa el actor a partir del ultimo editor");
+    cliente.Nit = "87654321";
+    cliente.RazonSocial = "Cliente Modificado";
+    Check(clientes.Update(cliente) == 1 && ventas.GetById(venta.Id)?.Nit == "12345678", "venta conserva copia de datos del cliente");
+    venta.IdUsuarioEditor = adminId;
+    venta.Detalles[0].Cantidad = 4;
+    venta.Total = 14m;
+    var updated = ventas.ActualizarVenta(venta);
+    Check(updated.IsSuccess && medicamentos.GetById(medicamento.Id)?.Stock == 21, "editar mediante repositorio y restituir/descontar stock: " + updated.Error);
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE tabla='detalle_venta' AND operacion='DELETE'") > 0, "auditoria del detalle eliminado durante edicion");
+    Check(ventas.AnularVentaLogicamente(venta.Id, adminId).IsSuccess && medicamentos.GetById(medicamento.Id)?.Stock == 25, "anular venta y restaurar stock una vez");
+    Check(!ventas.AnularVentaLogicamente(venta.Id, adminId).IsSuccess && medicamentos.GetById(medicamento.Id)?.Stock == 25, "anulacion repetida no devuelve stock");
+
+    var auditBefore = Scalar("SELECT COUNT(*) FROM auditoria");
+    var salesBefore = Scalar("SELECT COUNT(*) FROM venta");
+    var invalidSale = new Venta { IdCliente = cliente.IdCliente, IdUsuario = adminId, MetodoPago = "QR", Total = 100m,
+        Detalles = new() {
+            new DetalleVenta { IdMedicamento = medicamento.Id, Cantidad = 20, PrecioUnitario = 3.50m },
+            new DetalleVenta { IdMedicamento = medicamento.Id, Cantidad = 20, PrecioUnitario = 3.50m }
+        } };
+    Check(!ventas.RegistrarVenta(invalidSale).IsSuccess, "fallo a mitad de transaccion de venta");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria") == auditBefore && Scalar("SELECT COUNT(*) FROM venta") == salesBefore
+        && medicamentos.GetById(medicamento.Id)?.Stock == 25, "rollback de cabecera, detalle, stock y auditoria");
+    Rejected(() => Exec($"INSERT INTO detalle_venta VALUES ({venta.Id}, {medicamento.Id}, 1, 3.50)"), "PK impide detalle repetido");
+    Rejected(() => Exec($"INSERT INTO detalle_venta VALUES (2147483647, {medicamento.Id}, 1, 3.50)"), "FK impide detalle huerfano", 1452);
+    Rejected(() => Exec($"DELETE FROM usuario WHERE id={adminId}"), "RESTRICT conserva referencias historicas", 1451);
+
+    // Contexto en la MISMA conexion de la escritura: permite correlacion y actor explicito.
+    Exec($"SET @audit_usuario_id={adminId}, @audit_solicitud_id='prueba-contexto', @audit_motivo='Ajuste verificado'");
+    Exec($"UPDATE medicamento SET stock=stock+1 WHERE id={medicamento.Id}");
+    Check(Scalar($"SELECT COUNT(*) FROM auditoria WHERE solicitud_id='prueba-contexto' AND usuario_app_id={adminId}") == 1, "actor y correlacion explicitos");
+    Exec("SET @audit_usuario_id=NULL, @audit_solicitud_id=NULL, @audit_motivo=NULL");
+    Check(Scalar($"SELECT SUM(variacion) FROM vw_auditoria_stock WHERE id_medicamento={medicamento.Id}") == 26, "historial de stock incluye saldo inicial y variaciones");
+
+    var tokenHash = TokenHelper.GenerarTokenHash("token-prueba-unico");
+    Check(tokens.Insert(new UsuarioToken(adminId, tokenHash, "ACTIVATION_CUENTA", DateTime.UtcNow.AddHours(1))) == 1, "insertar token SHA256");
+    var token = tokens.GetTokenActivo(tokenHash, "ACTIVATION_CUENTA")!;
+    Check(token != null && tokens.GetByTokenHash(tokenHash) != null, "leer token por hash y tipo");
+    Check(tokens.MarcarComoUsado(token!.IdUsuarioToken) == 1 && tokens.GetTokenActivo(tokenHash, "ACTIVATION_CUENTA") == null, "consumir token");
+    Check(Math.Abs((tokens.GetByTokenHash(tokenHash)!.FechaUso!.Value - DateTime.UtcNow).TotalSeconds) < 30, "fecha de uso del token en UTC");
+    Check(tokens.RevocarTokensActivos(adminId, "INICIO_SESION") == 1, "revocar token de inicio de sesion");
+    var expired = new UsuarioToken(adminId, TokenHelper.GenerarTokenHash("token-obsoleto"), "RESET_PASSWORD", DateTime.UtcNow.AddDays(-10)) { FechaCreacion = DateTime.UtcNow.AddDays(-11) };
+    Check(tokens.Insert(expired) == 1 && tokens.EliminarTokensObsoletos(1) == 1, "limpiar token obsoleto y auditar DELETE");
+    Check(usuarios.CambiarPassword(adminId, PasswordHelper.Hash("CambioSoloPrueba123!"), false) == 1, "cambiar password bcrypt");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE tabla='usuario' AND credencial_modificada=1") == 1, "registrar cambio de credencial sin copiar hash");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE JSON_CONTAINS_PATH(datos_anteriores,'one','$.password_hash','$.token_hash')=1 OR JSON_CONTAINS_PATH(datos_nuevos,'one','$.password_hash','$.token_hash')=1") == 0, "historial sin hashes de credenciales");
+    Rejected(() => Exec("UPDATE auditoria SET motivo='alterado' LIMIT 1"), "historial rechaza UPDATE", 1644);
+    Rejected(() => Exec("DELETE FROM auditoria LIMIT 1"), "historial rechaza DELETE", 1644);
+    Check(clientes.Delete(cliente) == 1 && clientes.GetById(cliente.IdCliente) == null, "baja logica cliente");
+    Check(clientes.Insert(new Cliente("87654321", "Cliente Nuevo", "") { IdUsuario = adminId }) == 1, "reutilizar NIT de cliente inactivo");
+    Check(medicamentos.Delete(medicamento) == 1 && medicamentos.GetAll().Rows.Count == 0, "baja logica medicamento");
+    Check(clasificaciones.Delete(clase) == 1 && clasificaciones.Insert(clase) == 1, "reutilizar clasificacion inactiva");
+    Check(Scalar("SELECT COUNT(*) FROM auditoria WHERE operacion='BAJA_LOGICA'") >= 4, "bajas logicas identificadas");
+    Check(Scalar("SELECT COUNT(*) FROM vw_ventas_descuadradas") == 0, "conciliacion final");
+
+    new MySqlScript(db, File.ReadAllText(Path.Combine(root, "database/03_roles_opcionales.sql"))).Execute();
+    var appPassword = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24));
+    using (var createApp = new MySqlCommand("CREATE USER 'vitalcare_verificacion'@'%' IDENTIFIED BY @password", db))
+    {
+        createApp.Parameters.AddWithValue("@password", appPassword);
+        createApp.ExecuteNonQuery();
+    }
+    Exec("GRANT 'vitalcare_app' TO 'vitalcare_verificacion'@'%'");
+    Exec("SET DEFAULT ROLE 'vitalcare_app' TO 'vitalcare_verificacion'@'%'");
+    var appSettings = new MySqlConnectionStringBuilder(connectionString) { UserID = "vitalcare_verificacion", Password = appPassword };
+    using (var appDb = new MySqlConnection(appSettings.ConnectionString))
+    {
+        appDb.Open();
+        var beforeAppAudit = Scalar("SELECT COUNT(*) FROM auditoria");
+        new MySqlCommand("INSERT INTO cliente(nit, razon_social) VALUES ('56789123', 'Prueba de permisos')", appDb).ExecuteNonQuery();
+        Check(Scalar("SELECT COUNT(*) FROM auditoria") == beforeAppAudit + 1, "rol de aplicacion escribe negocio y trigger audita con su definer");
+        Rejected(() => new MySqlCommand("UPDATE auditoria SET motivo='alteracion' LIMIT 1", appDb).ExecuteNonQuery(), "rol de aplicacion sin permiso UPDATE de auditoria", 1142);
+        Rejected(() => new MySqlCommand("DELETE FROM auditoria LIMIT 1", appDb).ExecuteNonQuery(), "rol de aplicacion sin permiso DELETE de auditoria", 1142);
+        Rejected(() => new MySqlCommand("SELECT * FROM auditoria LIMIT 1", appDb).ExecuteNonQuery(), "rol de aplicacion sin lectura de datos personales del historial", 1142);
+    }
+    Exec("DROP USER 'vitalcare_verificacion'@'%'");
+    Console.WriteLine($"RESULTADO: {checks} comprobaciones correctas. Los datos solo existen en la base de pruebas.");
+}
+finally { Directory.SetCurrentDirectory(previousDirectory); }

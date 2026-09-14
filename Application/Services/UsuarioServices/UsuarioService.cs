@@ -89,6 +89,25 @@ namespace ProyectoArqSoft.Application.Services
                 : Result.Fail("No se pudo actualizar el usuario.");
         }
 
+        public Result ActualizarAccesoUsuario(UsuarioActualizarDto dto, int? idUsuarioSesion)
+        {
+            var actual = _repository.GetById(dto.IdUsuario);
+            if (actual == null) return Result.Fail("El usuario no existe.");
+            var email = dto.Email?.Trim().ToLowerInvariant() ?? "";
+            if (email.Length > 255 || !System.Net.Mail.MailAddress.TryCreate(email, out var address) || address.Address != email)
+                return Result.Fail("El correo electrónico no es válido.");
+            if (dto.Role is not ("Admin" or "Bioquimico") || dto.Activo > 1)
+                return Result.Fail("El rol o estado no es válido.");
+            var otro = _repository.GetByEmail(email);
+            if (otro != null && otro.IdUsuario != actual.IdUsuario)
+                return Result.Fail("El correo ya está registrado.");
+            actual.Email = email;
+            actual.Role = dto.Role;
+            actual.Activo = (sbyte)dto.Activo;
+            return _repository.UpdateDatosEdicion(actual, idUsuarioSesion) > 0
+                ? Result.Ok() : Result.Fail("No se pudo actualizar el usuario.");
+        }
+
         public Result EliminarUsuario(int idUsuario, int? idUsuarioSesion)
         {
             Result validacion = _validacionGeneral.ValidarEliminacion(idUsuario);
@@ -177,13 +196,9 @@ namespace ProyectoArqSoft.Application.Services
                 return Result.Fail("El usuario no existe.");
 
             string passwordHash = PasswordHelper.Hash(nuevaPassword);
-            int filasAfectadas = _repository.CambiarPassword(usuario.IdUsuario, passwordHash, false);
+            int filasAfectadas = _repository.ActivarCuentaConToken(usuario.IdUsuario, usuarioToken.IdUsuarioToken, passwordHash);
             if (filasAfectadas <= 0)
                 return Result.Fail("No se pudo actualizar la contraseña.");
-
-            Result resultadoToken = _tokenService.MarcarComoUsado(usuarioToken.IdUsuarioToken);
-            if (!resultadoToken.IsSuccess)
-                return resultadoToken;
 
             return Result.Ok();
         }

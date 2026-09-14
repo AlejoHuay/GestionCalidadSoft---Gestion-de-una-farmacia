@@ -72,6 +72,25 @@ namespace ProyectoArqSoft.Pages
 
         public IActionResult OnPostActualizarVenta()
         {
+            var editor = HttpContext.Session.GetInt32("IdUsuario");
+            if (editor == null) return RedirectToPage("/Auth/Login");
+            try
+            {
+                var detalles = JsonSerializer.Deserialize<List<DetalleVentaInputDto>>(DetallesJson) ?? [];
+                var resultado = ventaFacade.ActualizarVenta(IdVenta, IdCliente, MetodoPago, detalles, editor.Value);
+                if (!resultado.IsSuccess)
+                {
+                    Estado.MensajeError = resultado.Error;
+                    CargarCatalogos();
+                    return Page();
+                }
+            }
+            catch (JsonException)
+            {
+                Estado.MensajeError = "El detalle de la venta no es válido.";
+                CargarCatalogos();
+                return Page();
+            }
             return RedirectToPage("Venta", new { mensaje = "Venta actualizada correctamente." });
         }
 

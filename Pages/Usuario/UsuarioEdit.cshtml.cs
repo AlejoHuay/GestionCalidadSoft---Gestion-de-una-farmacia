@@ -25,7 +25,7 @@ namespace ProyectoArqSoft.Pages.Usuario
             Input.IdUsuario = user.IdUsuario;
             Input.Email = user.Email;
             Input.Role = user.Role;
-            // Input.Nombres no se carga porque es solo visual, no editable
+            Input.Activo = (byte)user.Activo;
             return Page();
         }
 
@@ -33,13 +33,7 @@ namespace ProyectoArqSoft.Pages.Usuario
         {
             int? idUsuarioSesion = HttpContext.Session.GetInt32("IdUsuario");
 
-            // Si Nombres está vacío, no lo actualizamos
-            if (string.IsNullOrWhiteSpace(Input.Nombres))
-            {
-                Input.Nombres = null;  // No modificamos el campo Nombres si está vacío
-            }
-
-            Result resultado = _usuarioService.ActualizarUsuario(Input, idUsuarioSesion);
+            Result resultado = _usuarioService.ActualizarAccesoUsuario(Input, idUsuarioSesion);
 
             if (resultado.IsSuccess == false)
             {

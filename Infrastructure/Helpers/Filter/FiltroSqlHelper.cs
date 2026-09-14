@@ -1,4 +1,4 @@
-using MySql.Data.MySqlClient;
+using Npgsql;
 using System.Text;
 
 namespace ProyectoArqSoft.Infrastructure.Helpers
@@ -20,7 +20,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
 
                 for (int j = 0; j < columnas.Length; j++)
                 {
-                    condicion.Append($"REPLACE({columnas[j]}, ' ', '') LIKE @valor{i}");
+                    condicion.Append($"farmacia.normalizar_texto(REPLACE({columnas[j]}::text, ' ', '')) LIKE farmacia.normalizar_texto(@valor{i})");
 
                     if (j < columnas.Length - 1)
                         condicion.Append(" OR ");
@@ -32,7 +32,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             return condicion.ToString();
         }
 
-        public static void AgregarParametrosLike(MySqlCommand command, string filtro)
+        public static void AgregarParametrosLike(NpgsqlCommand command, string filtro)
         {
             string[] partes = FiltroHelper.ObtenerPartes(filtro);
 

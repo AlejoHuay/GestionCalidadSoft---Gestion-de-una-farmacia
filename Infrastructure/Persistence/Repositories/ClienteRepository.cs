@@ -1,4 +1,4 @@
-using MySql.Data.MySqlClient;
+using Npgsql;
 using ProyectoArqSoft.Infrastructure.Helpers;
 using ProyectoArqSoft.Domain.Models;
 using System.Data;
@@ -9,11 +9,11 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
 {
     public class ClienteRepository : IClienteRepository
     {
-        private readonly string connectionString;
+        private readonly PostgresDatabase database;
 
-        public ClienteRepository()
+        public ClienteRepository(PostgresDatabase database)
         {
-            connectionString = ConexionStringSingleton.Instancia.CadenaConexion;
+            this.database = database;
         }
 
         public int Insert(Cliente t)
@@ -23,20 +23,20 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                             VALUES
                             (@nit, @razon_social, @correo_electronico, @id_usuario, @estado)";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
                 command.Parameters.AddWithValue("@nit", t.Nit);
                 command.Parameters.AddWithValue("@razon_social", t.RazonSocial);
-                command.Parameters.AddWithValue("@id_usuario", t.IdUsuario);
+                command.Parameters.AddWithValue("@id_usuario", (object?)t.IdUsuario ?? DBNull.Value);
                 command.Parameters.AddWithValue("@estado", t.Estado);
                 command.Parameters.AddWithValue(
                     "@correo_electronico",
                     string.IsNullOrWhiteSpace(t.CorreoElectronico) ? DBNull.Value : t.CorreoElectronico);
 
                 connection.Open();
-                return command.ExecuteNonQuery();
+                return database.ExecuteNonQuery(command);
             }
         }
 
@@ -50,20 +50,20 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                  ultima_actualizacion = NOW()
                              WHERE id = @id";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
                 command.Parameters.AddWithValue("@id", t.IdCliente);
                 command.Parameters.AddWithValue("@nit", t.Nit);
                 command.Parameters.AddWithValue("@razon_social", t.RazonSocial);
-                command.Parameters.AddWithValue("@id_usuario", t.IdUsuario);
+                command.Parameters.AddWithValue("@id_usuario", (object?)t.IdUsuario ?? DBNull.Value);
                 command.Parameters.AddWithValue(
                     "@correo_electronico",
                     string.IsNullOrWhiteSpace(t.CorreoElectronico) ? DBNull.Value : t.CorreoElectronico);
 
                 connection.Open();
-                return command.ExecuteNonQuery();
+                return database.ExecuteNonQuery(command);
             }
         }
 
@@ -75,14 +75,14 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                  ultima_actualizacion = NOW()
                              WHERE id = @id";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.Parameters.AddWithValue("@id", t.IdCliente);
-                command.Parameters.AddWithValue("@id_usuario", t.IdUsuario);
+                command.Parameters.AddWithValue("@id_usuario", (object?)t.IdUsuario ?? DBNull.Value);
 
                 connection.Open();
-                return command.ExecuteNonQuery();
+                return database.ExecuteNonQuery(command);
             }
         }
 
@@ -95,16 +95,16 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
         {
             DataTable tabla = new DataTable();
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
 
                 string query = ConstruirQuery(filtro);
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
                 FiltroSqlHelper.AgregarParametrosLike(command, filtro);
 
-                MySqlDataAdapter adapter = new MySqlDataAdapter(command);
+                NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(command);
                 adapter.Fill(tabla);
             }
 
@@ -118,14 +118,14 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                              WHERE id = @id
                                AND estado = 1";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.Parameters.AddWithValue("@id", id);
 
                 connection.Open();
 
-                using (MySqlDataReader reader = command.ExecuteReader())
+                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
                     if (reader.Read())
                     {
@@ -178,9 +178,9 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
         {
             string query = "SELECT COUNT(*) FROM cliente";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 connection.Open();
 
                 return Convert.ToInt32(command.ExecuteScalar());

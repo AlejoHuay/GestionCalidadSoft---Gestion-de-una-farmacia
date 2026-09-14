@@ -65,7 +65,7 @@
                 @foreach (System.Data.DataRow row in Model.VentaDataTable.Rows)
                 {
                     <tr>
-                        <td>@row["fecha_hora"]</td>
+                        <td>@DateTime.SpecifyKind(Convert.ToDateTime(row["fecha_hora"]), DateTimeKind.Utc).ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                         <td>@row["nit"]</td>
                         <td>@row["razon_social"]</td>
                         <td>@row["metodo_pago"]</td>

@@ -12,6 +12,7 @@ namespace ProyectoArqSoft.Application.Ports.Output
         bool ExisteEmail(string email);
         bool ExisteUserName(string userName);
         int CambiarPassword(int idUsuario, string nuevoPasswordHash, bool mustChangePassword);
+        int ActivarCuentaConToken(int idUsuario, int idToken, string passwordHash);
 
         int UpdateDatosEdicion(Usuario usuario, int? idUsuarioSesion);
         int Count();

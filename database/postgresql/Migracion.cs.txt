@@ -1,0 +1,197 @@
+using System.Data;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text.Json;
+using Npgsql;
+using NpgsqlTypes;
+using MySql.Data.MySqlClient;
+
+var action = args[0];
+var root = args[1];
+DotNetEnv.Env.NoClobber().Load(Path.Combine(root, ".env"));
+var target = Environment.GetEnvironmentVariable("PG_TARGET_CONNECTION")
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__PostgresConnection");
+var source = Environment.GetEnvironmentVariable("MYSQL_SOURCE_CONNECTION");
+string[] tables = ["usuario", "usuario_token", "clasificacion", "cliente", "medicamento", "venta", "detalle_venta"];
+var filename = args.Length > 2 && !string.IsNullOrWhiteSpace(args[2]) ? Path.GetFullPath(args[2])
+    : Path.Combine(root, ".sandbox-appdata", "mysql-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + ".json");
+try
+{
+    if (action == "Export")
+    {
+        if (string.IsNullOrWhiteSpace(source)) throw new InvalidOperationException("Define MYSQL_SOURCE_CONNECTION en .env.");
+        using var mysql = new MySqlConnection(source);
+        mysql.Open();
+        using var transaction = mysql.BeginTransaction(IsolationLevel.RepeatableRead);
+        var snapshot = new Snapshot();
+        snapshot.UtcOffsetMinutes = Convert.ToInt32(new MySqlCommand("SELECT TIMESTAMPDIFF(MINUTE,UTC_TIMESTAMP(),NOW())",mysql,transaction).ExecuteScalar());
+        foreach (var table in tables.Concat(new[] { "auditoria" }))
+        {
+            using var exists = new MySqlCommand("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=@table AND engine='InnoDB'",mysql,transaction);
+            exists.Parameters.AddWithValue("table",table);
+            if(Convert.ToInt32(exists.ExecuteScalar()) == 0)
+            {
+                if(table == "auditoria") continue;
+                throw new InvalidOperationException("Falta una tabla InnoDB requerida: " + table);
+            }
+            var data = new TableData { Name = table };
+            // Omite únicamente las dos columnas generadas del esquema MySQL anterior.
+            using var command = new MySqlCommand($"SELECT * FROM `{table}` ORDER BY " + (table=="detalle_venta" ? "id_venta,id_medicamento" : "id"),mysql,transaction);
+            using var reader = command.ExecuteReader();
+            var ordinals = Enumerable.Range(0,reader.FieldCount).Where(i=>reader.GetName(i) is not ("nit_activo" or "nombre_activo")).ToArray();
+            data.Columns = ordinals.Select(i=>reader.GetName(i).ToLowerInvariant()).ToArray();
+            while(reader.Read())
+                data.Rows.Add(ordinals.Select(i=>JsonSerializer.SerializeToElement(reader.IsDBNull(i) ? null : reader.GetValue(i))).ToArray());
+            snapshot.Tables.Add(data);
+            Console.WriteLine($"Copia {table}: {data.Rows.Count} registros");
+        }
+        transaction.Commit();
+        Directory.CreateDirectory(Path.GetDirectoryName(filename)!);
+        using(var output = new FileStream(filename,FileMode.CreateNew)) JsonSerializer.Serialize(output,snapshot);
+        File.WriteAllText(filename+".sha256",Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(filename))));
+        Console.WriteLine("Copia terminada: " + filename);
+        return;
+    }
+    if (string.IsNullOrWhiteSpace(target)) throw new InvalidOperationException("Falta ConnectionStrings__PostgresConnection o PG_TARGET_CONNECTION.");
+    var settings = new NpgsqlConnectionStringBuilder(target) { SearchPath="farmacia",Timezone="UTC",Timeout=15,CommandTimeout=60 };
+    if(settings.Host?.EndsWith(".supabase.co",StringComparison.OrdinalIgnoreCase)==true)
+    {
+        settings.SslMode=SslMode.VerifyFull;
+        if(string.IsNullOrWhiteSpace(settings.RootCertificate)) settings.RootCertificate=Path.Combine(root,"database/postgresql/certs/supabase-ca.crt");
+    }
+    using var pg = new NpgsqlConnection(settings.ConnectionString);
+    pg.Open();
+    if(action == "Inspect")
+    {
+        using var command = new NpgsqlCommand("SELECT version(),current_database(); SELECT table_name FROM information_schema.tables WHERE table_schema='farmacia' ORDER BY table_name; SELECT table_name,column_name,data_type,is_nullable FROM information_schema.columns WHERE table_schema='farmacia' ORDER BY table_name,ordinal_position; SELECT trigger_name,event_object_table,action_statement FROM information_schema.triggers WHERE trigger_schema='farmacia'",pg);
+        using var reader = command.ExecuteReader();
+        while(reader.Read()) Console.WriteLine(reader.GetString(0) + " | " + reader.GetString(1));
+        reader.NextResult();
+        while(reader.Read()) Console.WriteLine("Tabla: " + reader.GetString(0));
+        reader.NextResult();
+        while(reader.Read()) Console.WriteLine($"Columna: {reader.GetString(0)}.{reader.GetString(1)} | {reader.GetString(2)} | null:{reader.GetString(3)}");
+        reader.NextResult();
+        while(reader.Read()) Console.WriteLine($"Trigger: {reader.GetString(0)} | {reader.GetString(1)} | {reader.GetString(2)}");
+        reader.Close();
+        foreach(var table in tables)
+        {
+            using var c=new NpgsqlCommand("SELECT to_regclass(@t)::text",pg); c.Parameters.AddWithValue("t","farmacia."+table);
+            if(c.ExecuteScalar() is not DBNull)
+            { using var count=new NpgsqlCommand("SELECT count(*) FROM farmacia."+table,pg); Console.WriteLine($"Recuento {table}: {count.ExecuteScalar()}"); }
+        }
+        Console.WriteLine("Conexión PostgreSQL verificada.");
+        return;
+    }
+    if(action is "Schema" or "UpgradeEmpty")
+    {
+        var script=action=="Schema" ? "01_esquema_y_auditoria.sql" : "05_actualizar_instalacion_vacia.sql";
+        using var command = new NpgsqlCommand(File.ReadAllText(Path.Combine(root,"database/postgresql",script)),pg);
+        command.ExecuteNonQuery();
+        Console.WriteLine("Esquema y auditoría creados.");
+        return;
+    }
+    if(!File.Exists(filename)) throw new InvalidOperationException("Indica -Archivo con la copia JSON creada por Export.");
+    var bytes = File.ReadAllBytes(filename);
+    if(File.ReadAllText(filename+".sha256").Trim() != Convert.ToHexString(SHA256.HashData(bytes)))
+        throw new InvalidOperationException("La copia no coincide con su SHA256; no se importó.");
+    var backup = JsonSerializer.Deserialize<Snapshot>(bytes)!;
+    if(!backup.Tables.Where(t=>t.Name!="auditoria").Select(t=>t.Name).SequenceEqual(tables))
+        throw new InvalidOperationException("La copia no contiene exactamente las siete tablas esperadas.");
+    using var tx = pg.BeginTransaction();
+    void Exec(string sql) { using var c=new NpgsqlCommand(sql,pg,tx); c.ExecuteNonQuery(); }
+    if(action == "Import")
+    {
+        // Bloquea las tablas durante la importación; nunca escribe en MySQL.
+        Exec("LOCK TABLE " + string.Join(',',tables.Select(t=>"farmacia."+t)) + ",farmacia.auditoria_legacy_mysql IN ACCESS EXCLUSIVE MODE");
+        foreach(var table in tables.Concat(new[]{"auditoria_legacy_mysql"}))
+        {
+            using var c = new NpgsqlCommand("SELECT count(*) FROM farmacia."+table,pg,tx);
+            if(Convert.ToInt64(c.ExecuteScalar())!=0) throw new InvalidOperationException("El destino contiene datos en "+table+". No se mezclaron ni reemplazaron.");
+        }
+        Exec("SET CONSTRAINTS ALL DEFERRED; SELECT set_config('app.motivo','Importacion verificada desde MySQL',true),set_config('app.solicitud_id','migracion-mysql',true),set_config('app.usuario_id','',true)");
+    }
+    foreach(var table in backup.Tables)
+    {
+        if(table.Name=="auditoria")
+        {
+            foreach(var row in table.Rows)
+            {
+                var record = table.Columns.Select((c,i)=>(c,row[i])).ToDictionary(x=>x.c,x=>x.Item2);
+                var id = record["id"].GetInt64();
+                using var c=new NpgsqlCommand(action=="Import"
+                    ? "INSERT INTO farmacia.auditoria_legacy_mysql(id,registro) VALUES(@id,@json)"
+                    : "SELECT count(*) FROM farmacia.auditoria_legacy_mysql WHERE id=@id AND registro=@json",pg,tx);
+                c.Parameters.AddWithValue("id",id);
+                c.Parameters.AddWithValue("json",NpgsqlDbType.Jsonb,JsonSerializer.Serialize(record));
+                if(action=="Import") c.ExecuteNonQuery();
+                else if(Convert.ToInt64(c.ExecuteScalar())!=1) throw new Exception("Diferencia en historial MySQL, id="+id);
+            }
+            Console.WriteLine($"Historial MySQL conservado: {table.Rows.Count} registros");
+            continue;
+        }
+        var types = new Dictionary<string,string>();
+        using(var c=new NpgsqlCommand("SELECT column_name,data_type FROM information_schema.columns WHERE table_schema='farmacia' AND table_name=@t",pg,tx))
+        {
+            c.Parameters.AddWithValue("t",table.Name);
+            using var r=c.ExecuteReader(); while(r.Read()) types[r.GetString(0)]=r.GetString(1);
+        }
+        if(table.Columns.Any(c=>!types.ContainsKey(c))) throw new Exception("La estructura original difiere del destino: "+table.Name);
+        for(var n=0;n<table.Rows.Count;n++)
+        {
+            var row=table.Rows[n];
+            string cols=string.Join(',',table.Columns.Select(c=>'"'+c+'"'));
+            string pars=string.Join(',',table.Columns.Select((c,i)=>"@p"+i));
+            using var c=new NpgsqlCommand(action=="Import"
+                ? $"INSERT INTO farmacia.{table.Name}({cols}) VALUES({pars})"
+                : $"SELECT count(*) FROM farmacia.{table.Name} WHERE "+string.Join(" AND ",table.Columns.Select((col,i)=>$"\"{col}\" IS NOT DISTINCT FROM @p{i}")),pg,tx);
+            for(int i=0;i<row.Length;i++)
+            {
+                var kind=types[table.Columns[i]];
+                var type=kind switch { "integer"=>NpgsqlDbType.Integer,"bigint"=>NpgsqlDbType.Bigint,"smallint"=>NpgsqlDbType.Smallint,"numeric"=>NpgsqlDbType.Numeric,"timestamp with time zone"=>NpgsqlDbType.TimestampTz,_=>NpgsqlDbType.Text };
+                object value=DBNull.Value;
+                if(row[i].ValueKind!=JsonValueKind.Null)
+                {
+                    var e=row[i];
+                    value=kind switch { "integer"=>e.GetInt32(),"bigint"=>e.GetInt64(),"smallint"=>e.ValueKind is JsonValueKind.True or JsonValueKind.False ? (short)(e.GetBoolean()?1:0) : e.GetInt16(),"numeric"=>e.GetDecimal(),"timestamp with time zone"=>DateTime.SpecifyKind(e.GetDateTime(),DateTimeKind.Unspecified).Subtract(TimeSpan.FromMinutes(table.Name=="usuario_token" ? 0 : backup.UtcOffsetMinutes)).SpecifyUtc(),_=>e.GetString()! };
+                }
+                c.Parameters.AddWithValue("p"+i,type,value);
+            }
+            if(action=="Import") c.ExecuteNonQuery();
+            else if(Convert.ToInt64(c.ExecuteScalar())!=1) throw new Exception($"Diferencia en {table.Name}, fila {n+1}");
+        }
+        using(var count=new NpgsqlCommand("SELECT count(*) FROM farmacia."+table.Name,pg,tx))
+            if(Convert.ToInt64(count.ExecuteScalar())!=table.Rows.Count) throw new Exception("El recuento no coincide: "+table.Name);
+        if(action=="Import" && table.Name!="detalle_venta")
+        {
+            using var next=new NpgsqlCommand("SELECT coalesce(max(id),0)+1 FROM farmacia."+table.Name,pg,tx);
+            long id=Convert.ToInt64(next.ExecuteScalar());
+            Exec($"ALTER SEQUENCE farmacia.{table.Name}_id_seq RESTART WITH {id}");
+        }
+        Console.WriteLine($"{table.Name}: {table.Rows.Count} registros {action}");
+    }
+    // No cambia importes ni corrige silenciosamente inconsistencias del origen.
+    using(var c=new NpgsqlCommand("SELECT count(*) FROM farmacia.vw_ventas_descuadradas",pg,tx))
+        Console.WriteLine("Ventas con total distinto al detalle: "+c.ExecuteScalar());
+    tx.Commit();
+    Console.WriteLine(action=="Import" ? "Importación completa. Ejecuta Verify para comparar todos los campos." : "Verificación completa: datos, identificadores y hashes coinciden.");
+}
+catch(Exception ex)
+{
+    // Los errores de autenticación/red no deben mostrar cadenas, contraseñas ni registros.
+    Console.Error.WriteLine(ex is PostgresException p ? $"PostgreSQL {p.SqlState}: {p.MessageText}" : ex.Message);
+    for(var inner=ex.InnerException;inner!=null;inner=inner.InnerException) Console.Error.WriteLine(inner.Message);
+    Environment.ExitCode=1;
+}
+
+sealed class Snapshot
+{
+    public int UtcOffsetMinutes {get;set;}
+    public List<TableData> Tables {get;set;} = [];
+}
+sealed class TableData
+{
+    public string Name {get;set;} = "";
+    public string[] Columns {get;set;} = [];
+    public List<JsonElement[]> Rows {get;set;} = [];
+}
+static class Dates { public static DateTime SpecifyUtc(this DateTime value)=>DateTime.SpecifyKind(value,DateTimeKind.Utc); }

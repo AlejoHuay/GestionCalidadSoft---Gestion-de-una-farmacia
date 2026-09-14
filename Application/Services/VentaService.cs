@@ -141,6 +141,9 @@ namespace ProyectoArqSoft.Application.Services
                 Detalles = new List<DetalleVenta>()
             };
 
+            var preciosAnteriores = id > 0
+                ? _repository.GetDetallesByVentaId(id).ToDictionary(d => d.IdMedicamento, d => d.PrecioUnitario)
+                : new Dictionary<int, decimal>();
             foreach (DetalleVentaInputDto item in detallesInput)
             {
                 var medicamento = _medicamentoRepository.GetById(item.IdMedicamento);
@@ -149,11 +152,11 @@ namespace ProyectoArqSoft.Application.Services
                     throw new InvalidOperationException(
                         $"Medicamento con ID {item.IdMedicamento} no encontrado.");
 
-                if (item.Cantidad > medicamento.Stock)
+                if (id == 0 && item.Cantidad > medicamento.Stock)
                     throw new InvalidOperationException(
                         $"Stock insuficiente para {medicamento.Nombre}. Disponible: {medicamento.Stock}.");
 
-                decimal precioReal = medicamento.Precio;
+                decimal precioReal = preciosAnteriores.GetValueOrDefault(item.IdMedicamento, medicamento.Precio);
 
                 DetalleVenta detalle = new DetalleVenta
                 {

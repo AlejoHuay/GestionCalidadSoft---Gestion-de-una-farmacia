@@ -1,5 +1,5 @@
 using System.Data;
-using MySql.Data.MySqlClient;
+using Npgsql;
 using ProyectoArqSoft.Domain.Models;
 using ProyectoArqSoft.Infrastructure.Helpers;
 using ProyectoArqSoft.Application.Ports.Output;
@@ -9,11 +9,11 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
 {
     public class UsuarioRepository : IUsuarioRepository
     {
-        private readonly string connectionString;
+        private readonly PostgresDatabase database;
 
-        public UsuarioRepository()
+        public UsuarioRepository(PostgresDatabase database)
         {
-            connectionString = ConexionStringSingleton.Instancia.CadenaConexion;
+            this.database = database;
         }
 
         public int Insert(Usuario t)
@@ -51,7 +51,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                 @id_usuario
                             )";
 
-            MySqlCommand command = new MySqlCommand(query);
+            NpgsqlCommand command = new NpgsqlCommand(query);
             command.Parameters.AddWithValue("@nombres", t.Nombres);
             command.Parameters.AddWithValue("@apellido_materno", (object?)t.ApellidoMaterno ?? DBNull.Value);
             command.Parameters.AddWithValue("@apellido_paterno", t.ApellidoPaterno);
@@ -64,9 +64,9 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             command.Parameters.AddWithValue("@password_hash", t.PasswordHash);
             command.Parameters.AddWithValue("@role", t.Role);
             command.Parameters.AddWithValue("@must_change_password", t.MustChangePassword);
-            command.Parameters.AddWithValue("@id_usuario", t.IdUsuarioCreador);
+            command.Parameters.AddWithValue("@id_usuario", (object?)t.IdUsuarioCreador ?? DBNull.Value);
 
-            return RepositoryDbHelper.ExecuteNonQuery(connectionString, command);
+            return RepositoryDbHelper.ExecuteNonQuery(database, command);
         }
 
         public int Update(Usuario t)
@@ -85,48 +85,48 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                              FROM usuario
                              WHERE id = @id";
 
-            MySqlCommand command = new MySqlCommand(query);
+            NpgsqlCommand command = new NpgsqlCommand(query);
             command.Parameters.AddWithValue("@id", id);
 
-            return RepositoryDbHelper.ExecuteReaderSingle(connectionString, command, MapearUsuario);
+            return RepositoryDbHelper.ExecuteReaderSingle(database, command, MapearUsuario);
         }
 
         public Usuario? GetByEmail(string email)
         {
             string query = @"SELECT *
                              FROM usuario
-                             WHERE email = @email
+                             WHERE farmacia.normalizar_texto(email) = farmacia.normalizar_texto(@email)
                              LIMIT 1";
 
-            MySqlCommand command = new MySqlCommand(query);
+            NpgsqlCommand command = new NpgsqlCommand(query);
             command.Parameters.AddWithValue("@email", email);
 
-            return RepositoryDbHelper.ExecuteReaderSingle(connectionString, command, MapearUsuario);
+            return RepositoryDbHelper.ExecuteReaderSingle(database, command, MapearUsuario);
         }
 
         public Usuario? GetByUserName(string userName)
         {
             string query = @"SELECT *
                              FROM usuario
-                             WHERE user_name = @user_name
+                             WHERE farmacia.normalizar_texto(user_name) = farmacia.normalizar_texto(@user_name)
                              LIMIT 1";
 
-            MySqlCommand command = new MySqlCommand(query);
+            NpgsqlCommand command = new NpgsqlCommand(query);
             command.Parameters.AddWithValue("@user_name", userName);
 
-            return RepositoryDbHelper.ExecuteReaderSingle(connectionString, command, MapearUsuario);
+            return RepositoryDbHelper.ExecuteReaderSingle(database, command, MapearUsuario);
         }
 
         public bool ExisteEmail(string email)
         {
             string query = @"SELECT COUNT(*)
                              FROM usuario
-                             WHERE email = @email";
+                             WHERE farmacia.normalizar_texto(email) = farmacia.normalizar_texto(@email)";
 
-            MySqlCommand command = new MySqlCommand(query);
+            NpgsqlCommand command = new NpgsqlCommand(query);
             command.Parameters.AddWithValue("@email", email);
 
-            var result = RepositoryDbHelper.ExecuteScalar(connectionString, command);
+            var result = RepositoryDbHelper.ExecuteScalar(database, command);
             return Convert.ToInt32(result) > 0;
         }
 
@@ -134,12 +134,12 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
         {
             string query = @"SELECT COUNT(*)
                              FROM usuario
-                             WHERE user_name = @user_name";
+                             WHERE farmacia.normalizar_texto(user_name) = farmacia.normalizar_texto(@user_name)";
 
-            MySqlCommand command = new MySqlCommand(query);
+            NpgsqlCommand command = new NpgsqlCommand(query);
             command.Parameters.AddWithValue("@user_name", userName);
 
-            var result = RepositoryDbHelper.ExecuteScalar(connectionString, command);
+            var result = RepositoryDbHelper.ExecuteScalar(database, command);
             return Convert.ToInt32(result) > 0;
         }
 
@@ -151,12 +151,12 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                  ultima_actualizacion = NOW()
                              WHERE id = @id";
 
-            MySqlCommand command = new MySqlCommand(query);
+            NpgsqlCommand command = new NpgsqlCommand(query);
             command.Parameters.AddWithValue("@id", idUsuario);
             command.Parameters.AddWithValue("@password_hash", nuevoPasswordHash);
-            command.Parameters.AddWithValue("@must_change_password", mustChangePassword);
+            command.Parameters.AddWithValue("@must_change_password", (short)(mustChangePassword ? 1 : 0));
 
-            return RepositoryDbHelper.ExecuteNonQuery(connectionString, command);
+            return RepositoryDbHelper.ExecuteNonQuery(database, command);
         }
 
         public DataTable GetAll()
@@ -164,20 +164,36 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return GetAll(string.Empty);
         }
 
+        public int ActivarCuentaConToken(int idUsuario, int idToken, string passwordHash)
+        {
+            using var command = new NpgsqlCommand(@"WITH consumido AS (
+                UPDATE usuario_token SET usado=1, fecha_uso=NOW()
+                WHERE id=@token AND usuario_idusuario=@usuario AND tipo_token='ACTIVATION_CUENTA'
+                  AND usado=0 AND revocado=0 AND fecha_expiracion>NOW()
+                  AND EXISTS(SELECT 1 FROM usuario WHERE id=@usuario AND activo=1)
+                RETURNING usuario_idusuario)
+                UPDATE usuario SET password_hash=@hash,must_change_password=0,ultima_actualizacion=NOW()
+                WHERE id IN (SELECT usuario_idusuario FROM consumido)");
+            command.Parameters.AddWithValue("token", idToken);
+            command.Parameters.AddWithValue("usuario", idUsuario);
+            command.Parameters.AddWithValue("hash", passwordHash);
+            return database.ExecuteNonQuery(command);
+        }
+
         public DataTable GetAll(string filtro)
         {
             DataTable tabla = new DataTable();
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
                 connection.Open();
 
                 string query = ConstruirQuery(filtro);
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
                 FiltroSqlHelper.AgregarParametrosLike(command, filtro);
 
-                MySqlDataAdapter adapter = new MySqlDataAdapter(command);
+                NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(command);
                 adapter.Fill(tabla);
             }
 
@@ -218,32 +234,32 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return query;
         }
 
-        private Usuario MapearUsuario(MySqlDataReader reader)
+        private Usuario MapearUsuario(NpgsqlDataReader reader)
         {
             return new Usuario
             {
-                IdUsuario = reader.GetInt32("id"),
-                Nombres = reader.GetString("nombres"),
+                IdUsuario = reader.GetInt32(reader.GetOrdinal("id")),
+                Nombres = reader.GetString(reader.GetOrdinal("nombres")),
                 ApellidoMaterno = reader.IsDBNull(reader.GetOrdinal("apellido_materno"))
                     ? null
-                    : reader.GetString("apellido_materno"),
-                ApellidoPaterno = reader.GetString("apellido_paterno"),
-                Ci = reader.GetString("ci"),
-                Telefono = reader.GetString("telefono"),
-                Activo = reader.GetSByte("activo"),
-                FechaRegistro = reader.GetDateTime("fecha_registro"),
+                    : reader.GetString(reader.GetOrdinal("apellido_materno")),
+                ApellidoPaterno = reader.GetString(reader.GetOrdinal("apellido_paterno")),
+                Ci = reader.GetString(reader.GetOrdinal("ci")),
+                Telefono = reader.GetString(reader.GetOrdinal("telefono")),
+                Activo = checked((sbyte)reader.GetInt16(reader.GetOrdinal("activo"))),
+                FechaRegistro = reader.GetDateTime(reader.GetOrdinal("fecha_registro")),
                 UltimaActualizacion = reader.IsDBNull(reader.GetOrdinal("ultima_actualizacion"))
                     ? (DateTime?)null
-                    : reader.GetDateTime("ultima_actualizacion"),
+                    : reader.GetDateTime(reader.GetOrdinal("ultima_actualizacion")),
                 IdUsuarioCreador = reader.IsDBNull(reader.GetOrdinal("id_usuario"))
                     ? (int?)null
-                    : reader.GetInt32("id_usuario"),
-                CiExtencion = reader.GetString("ci_extencion"),
-                Email = reader.GetString("email"),
-                UserName = reader.GetString("user_name"),
-                PasswordHash = reader.GetString("password_hash"),
-                Role = reader.GetString("role"),
-                MustChangePassword = reader.GetSByte("must_change_password")
+                    : reader.GetInt32(reader.GetOrdinal("id_usuario")),
+                CiExtencion = reader.GetString(reader.GetOrdinal("ci_extencion")),
+                Email = reader.GetString(reader.GetOrdinal("email")),
+                UserName = reader.GetString(reader.GetOrdinal("user_name")),
+                PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
+                Role = reader.GetString(reader.GetOrdinal("role")),
+                MustChangePassword = checked((sbyte)reader.GetInt16(reader.GetOrdinal("must_change_password")))
             };
         }
 
@@ -260,18 +276,18 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                              WHERE id = @id";
                             
 
-            using MySqlConnection connection = new MySqlConnection(connectionString);
+            using NpgsqlConnection connection = database.CreateConnection();
             connection.Open();
 
-            using MySqlCommand command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@idUsuarioSesion", idUsuarioSesion);
+            using NpgsqlCommand command = new NpgsqlCommand(query, connection);
+            command.Parameters.AddWithValue("@idUsuarioSesion", (object?)idUsuarioSesion ?? DBNull.Value);
             command.Parameters.AddWithValue("@email", usuario.Email);
             command.Parameters.AddWithValue("@user_name", usuario.UserName);
             command.Parameters.AddWithValue("@role", usuario.Role);
             command.Parameters.AddWithValue("@activo", usuario.Activo);
             command.Parameters.AddWithValue("@id", usuario.IdUsuario);
 
-            return command.ExecuteNonQuery();
+            return database.ExecuteNonQuery(command);
         }
         public int SoftDelete(Usuario usuario, int? idUsuarioSesion)
         {
@@ -281,11 +297,11 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                 id_usuario = @idUsuarioSesion
                             WHERE id = @id";
 
-            MySqlCommand command = new MySqlCommand(query);
-            command.Parameters.AddWithValue("@idUsuarioSesion", idUsuarioSesion);
+            NpgsqlCommand command = new NpgsqlCommand(query);
+            command.Parameters.AddWithValue("@idUsuarioSesion", (object?)idUsuarioSesion ?? DBNull.Value);
             command.Parameters.AddWithValue("@id", usuario.IdUsuario);
 
-            return RepositoryDbHelper.ExecuteNonQuery(connectionString, command);
+            return RepositoryDbHelper.ExecuteNonQuery(database, command);
         }
 
         public int Update(Usuario usuario, int? idUsuarioSesion)
@@ -305,12 +321,12 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
                                 ultima_actualizacion = NOW()
                             WHERE id = @id";
 
-            using MySqlConnection connection = new MySqlConnection(connectionString);
+            using NpgsqlConnection connection = database.CreateConnection();
             connection.Open();
 
-            using MySqlCommand command = new MySqlCommand(query, connection);
+            using NpgsqlCommand command = new NpgsqlCommand(query, connection);
             command.Parameters.AddWithValue("@nombres", usuario.Nombres);
-            command.Parameters.AddWithValue("@apellido_materno", usuario.ApellidoMaterno);
+            command.Parameters.AddWithValue("@apellido_materno", (object?)usuario.ApellidoMaterno ?? DBNull.Value);
             command.Parameters.AddWithValue("@apellido_paterno", usuario.ApellidoPaterno);
             command.Parameters.AddWithValue("@ci", usuario.Ci);
             command.Parameters.AddWithValue("@telefono", usuario.Telefono);
@@ -319,19 +335,19 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             command.Parameters.AddWithValue("@user_name", usuario.UserName);
             command.Parameters.AddWithValue("@role", usuario.Role);
             command.Parameters.AddWithValue("@activo", usuario.Activo);
-            command.Parameters.AddWithValue("@idUsuarioSesion", idUsuarioSesion);
+            command.Parameters.AddWithValue("@idUsuarioSesion", (object?)idUsuarioSesion ?? DBNull.Value);
             command.Parameters.AddWithValue("@id", usuario.IdUsuario);
 
-            return command.ExecuteNonQuery();
+            return database.ExecuteNonQuery(command);
         }
     
         public int Count()
         {
             string query = "SELECT COUNT(*) FROM usuario";
 
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (NpgsqlConnection connection = database.CreateConnection())
             {
-                MySqlCommand command = new MySqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 connection.Open();
 
                 return Convert.ToInt32(command.ExecuteScalar());
