@@ -63,7 +63,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
         }
         public static bool NombrePareceFragmentado(string? nombres)
         {
-                nombres = LimpiarTexto(nombres);
+            nombres = LimpiarTexto(nombres);
 
             if (string.IsNullOrWhiteSpace(nombres))
                 return true;
@@ -79,15 +79,8 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             if (palabrasDeUnCaracter >= 2)
                 return true;
 
-            if (partes.Length == 2)
-            {
-                bool primeraEsCortaInvalida = partes[0].Length <= 2 && !EsConectorValido(partes[0]);
-                bool segundaEsCortaInvalida = partes[1].Length <= 2 && !EsConectorValido(partes[1]);
-
-                if ((partes[0].Length >= 3 && segundaEsCortaInvalida) ||
-                    (primeraEsCortaInvalida && partes[1].Length >= 3))
-                    return true;
-            }
+            if (partes.Length == 2 && NombreDeDosPalabrasPareceFragmentado(partes[0], partes[1]))
+                return true;
 
             if (partes.Length >= 3 && palabrasCortasNoValidas >= 2)
                 return true;
@@ -96,6 +89,15 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
                 return true;
 
             return false;
+        }
+
+        private static bool NombreDeDosPalabrasPareceFragmentado(string primera, string segunda)
+        {
+            bool primeraEsCortaInvalida = primera.Length <= 2 && !EsConectorValido(primera);
+            bool segundaEsCortaInvalida = segunda.Length <= 2 && !EsConectorValido(segunda);
+
+            return (primera.Length >= 3 && segundaEsCortaInvalida) ||
+                   (primeraEsCortaInvalida && segunda.Length >= 3);
         }
 
             public static bool ApellidoPareceFragmentado(string? apellido)
@@ -113,20 +115,8 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
                 if (partes.Any(p => p.Length == 1))
                     return true;
 
-                if (partes.Length == 2)
-                {
-                    bool primeraEsConector = EsConectorValido(partes[0]);
-                    bool segundaEsConector = EsConectorValido(partes[1]);
-
-                    if (!primeraEsConector && !segundaEsConector)
-                    {
-                        if ((partes[0].Length >= 3 && partes[1].Length <= 2) ||
-                            (partes[0].Length <= 2 && partes[1].Length >= 3))
-                        {
-                            return true;
-                        }
-                    }
-                }
+                if (partes.Length == 2 && ApellidoDeDosPartesPareceFragmentado(partes[0], partes[1]))
+                    return true;
 
                 if (partes.Length >= 3)
                 {
@@ -137,6 +127,18 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
 
                 return false;
             }
+        private static bool ApellidoDeDosPartesPareceFragmentado(string primera, string segunda)
+        {
+            bool primeraEsConector = EsConectorValido(primera);
+            bool segundaEsConector = EsConectorValido(segunda);
+
+            if (primeraEsConector || segundaEsConector)
+                return false;
+
+            return (primera.Length >= 3 && segunda.Length <= 2) ||
+                   (primera.Length <= 2 && segunda.Length >= 3);
+        }
+
         private static readonly HashSet<string> ConectoresValidosNombre = new(StringComparer.OrdinalIgnoreCase)
         {
             "de", "del", "la", "las", "los", "san", "santa", "van", "von", "da", "das", "do", "dos"
