@@ -115,20 +115,8 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
                 if (partes.Any(p => p.Length == 1))
                     return true;
 
-                if (partes.Length == 2)
-                {
-                    bool primeraEsConector = EsConectorValido(partes[0]);
-                    bool segundaEsConector = EsConectorValido(partes[1]);
-
-                    if (!primeraEsConector && !segundaEsConector)
-                    {
-                        if ((partes[0].Length >= 3 && partes[1].Length <= 2) ||
-                            (partes[0].Length <= 2 && partes[1].Length >= 3))
-                        {
-                            return true;
-                        }
-                    }
-                }
+                if (partes.Length == 2 && ApellidoDeDosPartesPareceFragmentado(partes[0], partes[1]))
+                    return true;
 
                 if (partes.Length >= 3)
                 {
@@ -139,6 +127,18 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
 
                 return false;
             }
+        private static bool ApellidoDeDosPartesPareceFragmentado(string primera, string segunda)
+        {
+            bool primeraEsConector = EsConectorValido(primera);
+            bool segundaEsConector = EsConectorValido(segunda);
+
+            if (primeraEsConector || segundaEsConector)
+                return false;
+
+            return (primera.Length >= 3 && segunda.Length <= 2) ||
+                   (primera.Length <= 2 && segunda.Length >= 3);
+        }
+
         private static readonly HashSet<string> ConectoresValidosNombre = new(StringComparer.OrdinalIgnoreCase)
         {
             "de", "del", "la", "las", "los", "san", "santa", "van", "von", "da", "das", "do", "dos"
