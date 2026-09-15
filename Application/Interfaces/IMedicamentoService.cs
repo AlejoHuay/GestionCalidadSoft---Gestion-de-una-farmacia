@@ -21,7 +21,7 @@ namespace ProyectoArqSoft.Application.Interfaces
             int stock,
             int idUsuario);
 
-        Result Actualizar(MedicamentoActualizarDTO medicamento);
+        Result Actualizar(MedicamentoActualizarDto medicamento);
 
         Result EliminarLogicamente(int id, int idUsuario);
 

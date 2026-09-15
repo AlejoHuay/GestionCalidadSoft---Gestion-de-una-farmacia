@@ -75,7 +75,7 @@ namespace ProyectoArqSoft.Application.Services
             return Result.Ok();
         }
 
-        public Result Actualizar(MedicamentoActualizarDTO medicamento)
+        public Result Actualizar(MedicamentoActualizarDto medicamento)
         {
             Medicamento medicamentoActualizado = ConstruirMedicamento(
                 medicamento.Id,

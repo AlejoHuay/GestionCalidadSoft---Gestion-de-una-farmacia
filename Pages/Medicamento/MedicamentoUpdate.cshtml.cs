@@ -82,7 +82,7 @@ namespace ProyectoArqSoft.Pages
                 return Page();
             }
 
-            Result resultado = medicamentoService.Actualizar(new MedicamentoActualizarDTO
+            Result resultado = medicamentoService.Actualizar(new MedicamentoActualizarDto
             {
                 Id = IdMedicamento,
                 Nombre = Nombre,
