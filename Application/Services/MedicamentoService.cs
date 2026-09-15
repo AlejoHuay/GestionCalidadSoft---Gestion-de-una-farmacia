@@ -75,24 +75,24 @@ namespace ProyectoArqSoft.Application.Services
             return Result.Ok();
         }
 
-        public Result Actualizar(MedicamentoActualizarDTO datos)
+        public Result Actualizar(MedicamentoActualizarDTO medicamento)
         {
-            Medicamento medicamento = ConstruirMedicamento(
-                datos.Id,
-                datos.Nombre,
-                datos.Presentacion,
-                datos.IdClasificacion,
-                datos.Concentracion,
-                datos.Precio,
-                datos.Stock);
+            Medicamento medicamentoActualizado = ConstruirMedicamento(
+                medicamento.Id,
+                medicamento.Nombre,
+                medicamento.Presentacion,
+                medicamento.IdClasificacion,
+                medicamento.Concentracion,
+                medicamento.Precio,
+                medicamento.Stock);
 
-            medicamento.IdUsuario = datos.IdUsuario;
+            medicamentoActualizado.IdUsuario = medicamento.IdUsuario;
 
-            var validacion = _validador.Validar(medicamento);
+            var validacion = _validador.Validar(medicamentoActualizado);
             if (validacion.IsSuccess == false)
                 return validacion;
 
-            if (_repository.Update(medicamento) <= 0)
+            if (_repository.Update(medicamentoActualizado) <= 0)
                 return Result.Fail("No se pudo actualizar el medicamento.");
 
             return Result.Ok();
