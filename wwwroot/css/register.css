@@ -277,7 +277,7 @@ body {
     height: 50px;
     border: none;
     border-radius: 12px;
-    background: #08c23d;
+    background: #07852a;
     color: #ffffff;
     font-size: 1rem;
     font-weight: 800;
@@ -287,7 +287,7 @@ body {
 }
 
 .btn-register:hover {
-    background: #07b238;
+    background: #066f23;
     transform: translateY(-1px);
 }
 
