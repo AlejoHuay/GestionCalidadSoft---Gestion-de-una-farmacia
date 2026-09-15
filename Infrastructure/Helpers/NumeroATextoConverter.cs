@@ -1,6 +1,6 @@
 namespace ProyectoArqSoft.Application.Helpers
 {
-    public class NumeroATextoConverter
+    public static class NumeroATextoConverter
     {
         private static readonly string[] Unidades =
         {
