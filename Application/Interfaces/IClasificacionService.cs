@@ -1,5 +1,4 @@
 using ProyectoArqSoft.Domain.Models;
-//using ProyectoArqSoft.Domain.Validators;
 using ProyectoArqSoft.Domain.Validators;
 using System.Data;
 

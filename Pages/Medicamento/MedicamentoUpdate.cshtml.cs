@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProyectoArqSoft.Pages.Base;
 using ProyectoArqSoft.Application.Interfaces;
 using ProyectoArqSoft.Domain.Validators;
+using ProyectoArqSoft.Domain.DTOs;
 using MedicamentoEntidad = ProyectoArqSoft.Domain.Models.Medicamento;
 using System.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -81,15 +82,17 @@ namespace ProyectoArqSoft.Pages
                 return Page();
             }
 
-            Result resultado = medicamentoService.Actualizar(
-                IdMedicamento,
-                Nombre,
-                Presentacion,
-                IdClasificacion,
-                Concentracion,
-                Precio,
-                Stock,
-                idUsuario.Value);
+            Result resultado = medicamentoService.Actualizar(new MedicamentoActualizarDto
+            {
+                Id = IdMedicamento,
+                Nombre = Nombre,
+                Presentacion = Presentacion,
+                IdClasificacion = IdClasificacion,
+                Concentracion = Concentracion,
+                Precio = Precio,
+                Stock = Stock,
+                IdUsuario = idUsuario.Value
+            });
 
             if (resultado.IsSuccess == false)
             {

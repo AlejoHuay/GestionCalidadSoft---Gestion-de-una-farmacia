@@ -1,4 +1,5 @@
 using ProyectoArqSoft.Domain.Models;
+using ProyectoArqSoft.Domain.DTOs;
 using ProyectoArqSoft.Domain.Validators;
 using System.Data;
 
@@ -20,15 +21,7 @@ namespace ProyectoArqSoft.Application.Interfaces
             int stock,
             int idUsuario);
 
-        Result Actualizar(
-            int id,
-            string nombre,
-            string presentacion,
-            int idClasificacion,
-            string concentracion,
-            decimal precio,
-            int stock,
-            int idUsuario);
+        Result Actualizar(MedicamentoActualizarDto medicamento);
 
         Result EliminarLogicamente(int id, int idUsuario);
 

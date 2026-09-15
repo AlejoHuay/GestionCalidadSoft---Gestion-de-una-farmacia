@@ -331,6 +331,7 @@ body {
     border-radius: 10px;
     border: none;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
 }
 
 .dropdown-item {
@@ -345,11 +346,6 @@ body {
 .navbar .dropdown:hover .dropdown-menu {
     display: block;
     margin-top: 0;
-}
-
-/* Suavizar efecto */
-.dropdown-menu {
-    transition: all 0.3s ease;
 }
 
 /* Contenedor relativo */
@@ -369,9 +365,5 @@ body {
     background: white;
     border: 1px solid #ccc;
     border-radius: 5px;
-}
-
-/* Opcional: sombra */
-.resultados-dropdown {
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
