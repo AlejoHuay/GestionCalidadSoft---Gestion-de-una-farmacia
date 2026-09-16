@@ -20,23 +20,6 @@ namespace ProyectoArqSoft.Domain.Models
         public string Role { get; set; } = string.Empty;
         public sbyte MustChangePassword { get; set; } = 1;
         public Usuario() { }
-
-        public Usuario(string nombres, string apellidoPaterno, string apellidoMaterno, 
-        string ci, string ciExtencion, string email, string userName, string passwordHash, string role)
-        {
-            Nombres = nombres;
-            ApellidoPaterno = apellidoPaterno;
-            ApellidoMaterno = apellidoMaterno;
-            Ci = ci;
-            CiExtencion = ciExtencion;
-            Email = email;
-            UserName = userName;
-            PasswordHash = passwordHash;
-            Role = role;
-            Activo = 1;
-            MustChangePassword = 1;
-            FechaRegistro = DateTime.Now;
-        }
     }
 }
 
