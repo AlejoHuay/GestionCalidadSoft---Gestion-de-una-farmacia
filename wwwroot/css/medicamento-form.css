@@ -40,8 +40,8 @@
 }
 
 .med-btn-primary {
-    background-color: #10a53a;
-    border-color: #10a53a;
+    background-color: #08752a;
+    border-color: #08752a;
     color: #fff;
     border-radius: 10px;
     padding: 0.65rem 1.4rem;
@@ -49,8 +49,8 @@
 }
 
 .med-btn-primary:hover {
-    background-color: #0d8d31;
-    border-color: #0d8d31;
+    background-color: #066622;
+    border-color: #066622;
     color: #fff;
 }
 
