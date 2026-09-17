@@ -115,7 +115,7 @@ body {
 }
 
 .activation-note {
-    background: rgba(255, 255, 255, 0.10);
+    background: #126b59;
     border: 1px solid rgba(255, 255, 255, 0.22);
     padding: 16px 18px;
     border-radius: 14px;
@@ -255,7 +255,7 @@ body {
     height: 50px;
     border: none;
     border-radius: 12px;
-    background: #08c23d;
+    background: #057a2a;
     color: #ffffff;
     font-size: 1rem;
     font-weight: 800;
@@ -265,7 +265,7 @@ body {
 }
 
 .btn-activate:hover {
-    background: #07b238;
+    background: #046522;
     transform: translateY(-1px);
 }
 
