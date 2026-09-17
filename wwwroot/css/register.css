@@ -115,7 +115,7 @@ body {
 }
 
 .hero-note {
-    background: rgba(255, 255, 255, 0.10);
+    background: #126b59;
     border: 1px solid rgba(255, 255, 255, 0.22);
     padding: 16px 18px;
     border-radius: 14px;
@@ -245,7 +245,7 @@ body {
 
 .readonly-field {
     background: #f3f4f6 !important;
-    color: #6b7280;
+    color: #4b5563;
     border-style: dashed;
     cursor: not-allowed;
 }
