@@ -19,8 +19,10 @@
                 <div class="med-card-body p-4">
                     <form method="post">
                         <div class="form-floating mb-3">
-                            <input asp-for="Registro.Nombres" class="form-control med-input" placeholder="Nombres" />
-                            <label class="ms-2">Nombres</label>
+                            <input asp-for="Registro.Nombres" 
+                            class="form-control med-input" 
+                            placeholder="Nombres" />
+                            <label asp-for="Registro.Nombres" class="ms-2">Nombres</label>
                             <span asp-validation-for="Registro.Nombres" class="text-danger"></span>
                         </div>
 
