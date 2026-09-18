@@ -29,9 +29,12 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Registro.ApellidoPaterno" class="form-control med-input" placeholder="Primer apellido" />
-                                    <label class="ms-2">Primer apellido</label>
-                                    <span asp-validation-for="Registro.ApellidoPaterno" class="text-danger"></span>
+                                    <input asp-for="Registro.ApellidoPaterno"
+                                    class="form-control med-input" 
+                                    placeholder="Primer apellido" />
+                                    <label asp-for="Registro.ApellidoPaterno" class="ms-2">Primer apellido</label>
+                                    <span asp-validation-for="Registro.ApellidoPaterno" 
+                                    class="text-danger"></span>
                                 </div>
                             </div>
 
