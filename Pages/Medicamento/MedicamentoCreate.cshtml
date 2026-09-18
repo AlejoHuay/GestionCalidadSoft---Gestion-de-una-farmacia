@@ -13,8 +13,8 @@
                 <div class="med-card-body p-4">
                     <form method="post" asp-page-handler="CrearMedicamento">
                         <div class="form-floating mb-3">
-                            <input asp-for="Nombre" class="form-control med-input" placeholder="Nombre" required />
-                            <label class="ms-2">Nombre del Medicamento</label>
+                            <input asp-for="Nombre" id="Nombre" class="form-control med-input" placeholder="Nombre" required />
+                            <label asp-for="Nombre" for="Nombre" class="ms-2">Nombre del Medicamento</label>
                         </div>
 
                         <div class="form-floating mb-3">
