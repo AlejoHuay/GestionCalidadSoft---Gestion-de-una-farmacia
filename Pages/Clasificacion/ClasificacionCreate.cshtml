@@ -43,8 +43,17 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <textarea asp-for="Descripcion" class="form-control med-input" placeholder="Descripción" style="height: 120px" required></textarea>
-                            <label class="ms-2">Descripción Detallada</label>
+                            <textarea asp-for="Descripcion"
+                                      id="Descripcion"
+                                      class="form-control med-input" 
+                                      placeholder="Descripción" 
+                                      style="height: 120px" 
+                                      required></textarea>
+                            <label asp-for="Descripcion"
+                                   for="Descripcion"
+                                   class="ms-2">
+                                 Descripción Detallada
+                            </label>
                         </div>
 
                         @if (!string.IsNullOrWhiteSpace(Model.Estado.MensajeError))
