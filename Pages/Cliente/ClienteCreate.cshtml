@@ -15,8 +15,8 @@
                 <div class="med-card-body p-4">
                     <form method="post" asp-page-handler="CrearCliente">
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted d-block mb-3">Tipo de registro</label>
+                        <fieldset class="mb-4">
+                            <legend class="form-label fw-bold small text-muted d-block mb-3">Tipo de registro</legend>
 
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -35,7 +35,7 @@
                                     </label>
                                 </div>
                             </div>
-                        </div>
+                        </fieldset>
 
                         <div id="bloqueConsumidorFinal" class="alert alert-success border-0 shadow-sm mb-4" style="display:none;">
                             <i class="bi bi-info-circle-fill me-2"></i> Se registrará la venta como <strong>Consumidor Final</strong>.
@@ -43,18 +43,18 @@
 
                         <div id="datosClienteFiscal">
                             <div class="form-floating mb-3">
-                                <input asp-for="Nit" class="form-control med-input" placeholder="NIT" inputmode="numeric" />
-                                <label class="ms-2">NIT / CI</label>
+                                <input asp-for="Nit" id="Nit" class="form-control med-input" placeholder="NIT" inputmode="numeric" />
+                                <label asp-for="Nit" for="Nit" class="ms-2">NIT / CI</label>
                             </div>
 
                             <div class="form-floating mb-3">
-                                <input asp-for="RazonSocial" class="form-control med-input" placeholder="Razon Social" minlength="3" maxlength="45" required />
-                                <label class="ms-2">Razón Social / Nombre Completo</label>
+                                <input asp-for="RazonSocial" id="RazonSocial" class="form-control med-input" placeholder="Razon Social" minlength="3" maxlength="45" required />
+                                <label asp-for="RazonSocial" for="RazonSocial" class="ms-2">Razón Social / Nombre Completo</label>
                             </div>
 
                             <div id="correoElectronicoGroup" class="form-floating mb-3">
-                                <input asp-for="CorreoElectronico" type="email" class="form-control med-input" placeholder="Correo Electronico" maxlength="45" />
-                                <label class="ms-2">Correo Electrónico (Para factura)</label>
+                                <input asp-for="CorreoElectronico" id="CorreoElectronico" type="email" class="form-control med-input" placeholder="Correo Electronico" maxlength="45" />
+                                <label asp-for="CorreoElectronico" for="CorreoElectronico" class="ms-2">Correo Electrónico (Para factura)</label>
                             </div>
                         </div>
 

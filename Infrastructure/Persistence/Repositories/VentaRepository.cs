@@ -500,7 +500,11 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             using var command = new NpgsqlCommand("SELECT id FROM medicamento WHERE id = ANY(@ids) ORDER BY id FOR UPDATE", connection, transaction);
             command.Parameters.AddWithValue("ids", detalles.Select(d => d.IdMedicamento).Distinct().Order().ToArray());
             using var reader = command.ExecuteReader();
-            while (reader.Read()) { }
+            while (reader.Read())
+            {
+                // Consume todas las filas del SELECT FOR UPDATE antes de validar o modificar el stock.
+                // Los bloqueos se mantienen hasta el commit o rollback de la transacción actual.
+            }
         }
 
         private Result ValidarMedicamentosYStock(NpgsqlConnection connection, NpgsqlTransaction transaction, List<DetalleVenta> detalles)
