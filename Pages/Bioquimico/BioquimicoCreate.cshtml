@@ -19,24 +19,24 @@
                 <div class="med-card-body p-4">
                     <form method="post">
                         <div class="form-floating mb-3">
-                            <input asp-for="Registro.Nombres" class="form-control med-input" placeholder="Nombres" />
-                            <label class="ms-2">Nombres</label>
+                            <input asp-for="Registro.Nombres" id="Registro_Nombres" class="form-control med-input" placeholder="Nombres" />
+                            <label asp-for="Registro.Nombres" for="Registro_Nombres" class="ms-2">Nombres</label>
                             <span asp-validation-for="Registro.Nombres" class="text-danger"></span>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Registro.ApellidoPaterno" class="form-control med-input" placeholder="Primer apellido" />
-                                    <label class="ms-2">Primer apellido</label>
+                                    <input asp-for="Registro.ApellidoPaterno" id="Registro_ApellidoPaterno" class="form-control med-input" placeholder="Primer apellido" />
+                                    <label asp-for="Registro.ApellidoPaterno" for="Registro_ApellidoPaterno" class="ms-2">Primer apellido</label>
                                     <span asp-validation-for="Registro.ApellidoPaterno" class="text-danger"></span>
                                 </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Registro.ApellidoMaterno" class="form-control med-input" placeholder="Segundo apellido" />
-                                    <label class="ms-2">Segundo apellido (opcional)</label>
+                                    <input asp-for="Registro.ApellidoMaterno" id="Registro_ApellidoMaterno" class="form-control med-input" placeholder="Segundo apellido" />
+                                    <label asp-for="Registro.ApellidoMaterno" for="Registro_ApellidoMaterno" class="ms-2">Segundo apellido (opcional)</label>
                                     <span asp-validation-for="Registro.ApellidoMaterno" class="text-danger"></span>
                                 </div>
                             </div>
@@ -45,22 +45,22 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Registro.Ci" class="form-control med-input" placeholder="Carnet de identidad" />
-                                    <label class="ms-2">Carnet de identidad</label>
+                                    <input asp-for="Registro.Ci" id="Registro_Ci" class="form-control med-input" placeholder="Carnet de identidad" />
+                                    <label asp-for="Registro.Ci" for="Registro_Ci" class="ms-2">Carnet de identidad</label>
                                     <span asp-validation-for="Registro.Ci" class="text-danger"></span>
                                 </div>
                             </div>
 
                             <div class="col-md-3 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="CiComplemento" class="form-control med-input" placeholder="Complemento" maxlength="2" />
-                                    <label class="ms-2">Compl.</label>
+                                    <input asp-for="CiComplemento" id="CiComplemento" class="form-control med-input" placeholder="Complemento" maxlength="2" />
+                                    <label asp-for="CiComplemento" for="CiComplemento" class="ms-2">Compl.</label>
                                 </div>
                             </div>
 
                             <div class="col-md-3 mb-3">
                                 <div class="form-floating">
-                                    <select asp-for="Registro.CiExtencion" class="form-select med-input">
+                                    <select asp-for="Registro.CiExtencion" id="Registro_CiExtencion" class="form-select med-input">
                                         <option value="">Seleccione</option>
                                         <option value="BE">Beni</option>
                                         <option value="CB">Cochabamba</option>
@@ -72,21 +72,21 @@
                                         <option value="SC">Santa Cruz</option>
                                         <option value="TJ">Tarija</option>
                                     </select>
-                                    <label class="ms-2">Expedido</label>
+                                    <label asp-for="Registro.CiExtencion" for="Registro_CiExtencion" class="ms-2">Expedido</label>
                                     <span asp-validation-for="Registro.CiExtencion" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Registro.Telefono" class="form-control med-input" placeholder="Teléfono" />
-                            <label class="ms-2">Teléfono</label>
+                            <input asp-for="Registro.Telefono" id="Registro_Telefono" class="form-control med-input" placeholder="Teléfono" />
+                            <label asp-for="Registro.Telefono" for="Registro_Telefono" class="ms-2">Teléfono</label>
                             <span asp-validation-for="Registro.Telefono" class="text-danger"></span>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Registro.Email" type="email" class="form-control med-input" placeholder="Correo electrónico" />
-                            <label class="ms-2">Correo electrónico</label>
+                            <input asp-for="Registro.Email" id="Registro_Email" type="email" class="form-control med-input" placeholder="Correo electrónico" />
+                            <label asp-for="Registro.Email" for="Registro_Email" class="ms-2">Correo electrónico</label>
                             <span asp-validation-for="Registro.Email" class="text-danger"></span>
                         </div>
 
