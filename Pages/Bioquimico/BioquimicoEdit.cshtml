@@ -24,8 +24,15 @@
                         <input type="hidden" asp-for="Input.Ci" id="CiCompleto" />
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Nombres" class="form-control med-input" placeholder="Nombres" />
-                            <label class="ms-2">Nombres</label>
+                            <input asp-for="Input.Nombres"
+                            id="Input_Nombres"
+                            class="form-control med-input" 
+                            placeholder="Nombres" />
+                            <label asp-for="Input.Nombres"
+                            for="Input_Nombres"
+                            class="ms-2">
+                         Nombres
+                         </label>
                             <span asp-validation-for="Input.Nombres" class="text-danger"></span>
                         </div>
 
