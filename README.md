@@ -185,11 +185,7 @@ git clone https://github.com/RashLop/ArquitecturaSoft---Gestion-de-una-farmacia
 
 2. Abrir en Visual Studio  
 
-3. Configurar la cadena de conexión en:
-
-```json
-appsettings.json
-```
+3. Copiar `.env.example` a `.env` en la ra?z y completar localmente la conexi?n con la contrase?a rotada y las variables JWT. No guardar secretos en `appsettings.json`. Consulta [configuraci?n segura y verificaci?n](docs/seguridad-supabase.md).
 
 4. Ejecutar el proyecto  
 
