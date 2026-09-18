@@ -54,8 +54,15 @@
 
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Input.ApellidoMaterno" class="form-control med-input" placeholder="Segundo apellido" />
-                                    <label class="ms-2">Segundo apellido (opcional)</label>
+                                    <input asp-for="Input.ApellidoMaterno"
+                                     id="Input_ApellidoMaterno"
+                                     class="form-control med-input"
+                                     placeholder="Segundo apellido" />
+                                     <label asp-for="Input.ApellidoMaterno"
+                                       for="Input_ApellidoMaterno"
+                                       class="ms-2">
+                                     Segundo apellido (opcional)
+                                      </label>
                                     <span asp-validation-for="Input.ApellidoMaterno" class="text-danger"></span>
                                 </div>
                             </div>
