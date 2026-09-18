@@ -85,8 +85,8 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Registro.Email" type="email" class="form-control med-input" placeholder="Correo electrónico" />
-                            <label class="ms-2">Correo electrónico</label>
+                            <input asp-for="Registro.Email" id="Registro_Email" type="email" class="form-control med-input" placeholder="Correo electrónico" />
+                            <label asp-for="Registro.Email" for="Registro_Email" class="ms-2">Correo electrónico</label>
                             <span asp-validation-for="Registro.Email" class="text-danger"></span>
                         </div>
 
