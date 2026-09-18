@@ -21,3 +21,13 @@ Estado: corrección local implementada; issue pendiente de cierre.
 - Adjuntar confirmación de rotación y evidencias funcionales y de SonarQube sin valores sensibles.
 
 La compilación y la eliminación del secreto del archivo no prueban su revocación. Este registro no certifica la ausencia de cualquier otro secreto en todo el repositorio.
+
+## Verificaci?n posterior con configuraci?n local
+
+- Compilaci?n repetida: 0 advertencias y 0 errores.
+- La aplicaci?n inici? en `http://localhost:5082` porque 5081 estaba ocupado. El primer intento dentro del entorno restringido fall? por permisos de Windows; el inicio con acceso autorizado funcion?.
+- `GET /`: HTTP 200; el dashboard ejecuta consultas reales mediante `IDashboardFacade`.
+- Prueba independiente con Npgsql y validaci?n TLS: conexi?n nueva y `SELECT 1` correctos.
+- Se compar? la contrase?a configurada con la expuesta, sin imprimir valores: son distintas. Se intent? una conexi?n nueva sin pooling al mismo destino con la contrase?a anterior: PostgreSQL la rechaz? con SQLSTATE `28P01` (autenticaci?n inv?lida). Revocaci?n verificada para esa credencial y destino.
+- Medicamentos, clientes y ventas responden HTTP 401 sin sesi?n: requieren autenticaci?n. No se ejecutaron escrituras ni se considera validado el CRUD.
+- El nuevo an?lisis de SonarQube sigue pendiente; no se dispone de token en el entorno de esta sesi?n.
