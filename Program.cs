@@ -173,13 +173,13 @@ string jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? string.Em
 string jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? string.Empty;
 
 if (string.IsNullOrWhiteSpace(jwtKey))
-    throw new Exception("No se encontró JWT_KEY en el archivo .env.");
+    throw new InvalidOperationException("No se encontró JWT_KEY en el archivo .env.");
 
 if (string.IsNullOrWhiteSpace(jwtIssuer))
-    throw new Exception("No se encontró JWT_ISSUER en el archivo .env.");
+    throw new InvalidOperationException("No se encontró JWT_ISSUER en el archivo .env.");
 
 if (string.IsNullOrWhiteSpace(jwtAudience))
-    throw new Exception("No se encontró JWT_AUDIENCE en el archivo .env.");
+    throw new InvalidOperationException("No se encontró JWT_AUDIENCE en el archivo .env.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

@@ -63,14 +63,13 @@
                             if (!string.IsNullOrEmpty(role) && role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
                             {
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle fw-bold text-warning"
-                                       href="#"
-                                       id="usuariosDropdown"
-                                       role="button"
-                                       data-bs-toggle="dropdown"
-                                       aria-expanded="false">
+                                    <button class="nav-link dropdown-toggle fw-bold text-warning"
+                                            type="button"
+                                            id="usuariosDropdown"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false">
                                         Usuarios
-                                    </a>
+                                    </button>
                                     <ul class="dropdown-menu shadow" aria-labelledby="usuariosDropdown">
                                         <li>
                                             <a class="dropdown-item" asp-page="/Usuario/Usuario">
@@ -87,14 +86,13 @@
                             }
 
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle"
-                                   href="#"
-                                   id="medicamentosDropdown"
-                                   role="button"
-                                   data-bs-toggle="dropdown"
-                                   aria-expanded="false">
+                                <button class="nav-link dropdown-toggle"
+                                        type="button"
+                                        id="medicamentosDropdown"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
                                     Medicamentos
-                                </a>
+                                </button>
                                 <ul class="dropdown-menu shadow" aria-labelledby="medicamentosDropdown">
                                     <li>
                                         <a class="dropdown-item" asp-page="/Medicamento/Medicamento">
@@ -110,14 +108,13 @@
                             </li>
 
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle"
-                                   href="#"
-                                   id="ventasDropdown"
-                                   role="button"
-                                   data-bs-toggle="dropdown"
-                                   aria-expanded="false">
+                                <button class="nav-link dropdown-toggle"
+                                        type="button"
+                                        id="ventasDropdown"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
                                     Ventas
-                                </a>
+                                </button>
                                 <ul class="dropdown-menu shadow" aria-labelledby="ventasDropdown">
                                     <li>
                                         <a class="dropdown-item" asp-page="/Cliente/Cliente">
