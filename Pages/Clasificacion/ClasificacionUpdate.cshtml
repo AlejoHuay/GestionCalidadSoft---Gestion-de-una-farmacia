@@ -15,8 +15,16 @@
                         <input type="hidden" asp-for="IdClasificacion" />
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Nombre" class="form-control med-input" placeholder="Nombre" required />
-                            <label class="ms-2">Nombre de Clasificación</label>
+                            <input asp-for="Nombre" 
+                            id="Nombre"
+                            class="form-control med-input" 
+                            placeholder="Nombre" 
+                            required />
+                            <label asp-for="Nombre"
+                                   for="Nombre"
+                                   class="ms-2">
+                                 Nombre de Clasificación
+                                 </label>
                         </div>
 
                         <div class="form-floating mb-3">
