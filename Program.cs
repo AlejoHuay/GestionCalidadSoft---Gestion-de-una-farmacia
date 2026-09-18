@@ -35,7 +35,7 @@ builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
 if (string.IsNullOrWhiteSpace(postgresConnection))
-    throw new InvalidOperationException("Configura ConnectionStrings__PostgresConnection en el entorno o en .env.");
+    throw new InvalidOperationException("Configura ConnectionStrings__PostgresConnection en .env.");
 var postgresSettings = new NpgsqlConnectionStringBuilder(postgresConnection)
 {
     SearchPath = "farmacia", Timezone = "UTC", ApplicationName = "VitalCare"
