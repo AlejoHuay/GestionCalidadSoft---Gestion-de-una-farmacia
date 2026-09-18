@@ -162,11 +162,17 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <select asp-for="Input.Activo" class="form-select med-input">
+                                    <select asp-for="Input.Activo" 
+                                     id="Input_Activo"
+                                     class="form-select med-input">
                                         <option value="1">Activo</option>
                                         <option value="0">Inactivo</option>
                                     </select>
-                                    <label class="ms-2">Estado</label>
+                                    <label asp-for="Input.Activo"
+                                           for="Input_Activo"
+                                           class="ms-2">
+                                        Estado
+                                    </label>
                                 </div>
                             </div>
                         </div>
