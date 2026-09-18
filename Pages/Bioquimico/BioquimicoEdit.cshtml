@@ -124,8 +124,15 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Telefono" class="form-control med-input" placeholder="Teléfono" />
-                            <label class="ms-2">Teléfono</label>
+                            <input asp-for="Input.Telefono"
+                            id="Input_Telefono" 
+                            class="form-control med-input" 
+                            placeholder="Teléfono" />
+                            <label asp-for="Input.Telefono"
+                               for="Input_Telefono"
+                               class="ms-2">
+                             Teléfono
+                             </label>
                             <span asp-validation-for="Input.Telefono" class="text-danger"></span>
                         </div>
 
