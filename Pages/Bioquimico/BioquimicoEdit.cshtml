@@ -99,7 +99,9 @@
 
                             <div class="col-md-3 mb-3">
                                 <div class="form-floating">
-                                    <select asp-for="Input.CiExtencion" class="form-select med-input">
+                                    <select asp-for="Input.CiExtencion" 
+                                     id="Input_CiExtencion"
+                                     class="form-select med-input">
                                         <option value="">Seleccione</option>
                                         <option value="BE">Beni</option>
                                         <option value="CB">Cochabamba</option>
@@ -110,8 +112,12 @@
                                         <option value="PT">Potosí</option>
                                         <option value="SC">Santa Cruz</option>
                                         <option value="TJ">Tarija</option>
-                                    </select>
-                                    <label class="ms-2">Expedido</label>
+                                     </select>
+                                     <label asp-for="Input.CiExtencion"
+                                        for="Input_CiExtencion"
+                                        class="ms-2">
+                                      Expedido
+                                      </label>
                                     <span asp-validation-for="Input.CiExtencion" class="text-danger"></span>
                                 </div>
                             </div>
