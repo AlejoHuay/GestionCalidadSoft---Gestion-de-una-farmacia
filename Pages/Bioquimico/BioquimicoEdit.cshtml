@@ -137,8 +137,16 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Email" type="email" class="form-control med-input" placeholder="Correo electrónico" />
-                            <label class="ms-2">Correo electrónico</label>
+                            <input asp-for="Input.Email"
+                             id="Input_Email"
+                             type="email" 
+                             class="form-control med-input" 
+                             placeholder="Correo electrónico" />
+                                <label asp-for="Input.Email"
+                                   for="Input_Email"
+                                   class="ms-2">
+                                  Correo electrónico
+                                </label>
                             <span asp-validation-for="Input.Email" class="text-danger"></span>
                         </div>
 
