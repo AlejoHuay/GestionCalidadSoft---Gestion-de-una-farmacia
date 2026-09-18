@@ -54,8 +54,10 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Registro.Ci" class="form-control med-input" placeholder="Carnet de identidad" />
-                                    <label class="ms-2">Carnet de identidad</label>
+                                    <input asp-for="Registro.Ci"
+                                     class="form-control med-input"
+                                     placeholder="Carnet de identidad" />
+                                    <label asp-for="Registro.Ci" class="ms-2">Carnet de identidad</label>
                                     <span asp-validation-for="Registro.Ci" class="text-danger"></span>
                                 </div>
                             </div>
