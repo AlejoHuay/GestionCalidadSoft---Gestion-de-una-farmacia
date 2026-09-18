@@ -79,8 +79,8 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Registro.Telefono" class="form-control med-input" placeholder="Teléfono" />
-                            <label class="ms-2">Teléfono</label>
+                            <input asp-for="Registro.Telefono" id="Registro_Telefono" class="form-control med-input" placeholder="Teléfono" />
+                            <label asp-for="Registro.Telefono" for="Registro_Telefono" class="ms-2">Teléfono</label>
                             <span asp-validation-for="Registro.Telefono" class="text-danger"></span>
                         </div>
 
