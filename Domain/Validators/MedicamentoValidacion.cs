@@ -79,7 +79,7 @@ namespace ProyectoArqSoft.Domain.Validators
         private bool EsConcentracionValida(string concentracion)
         {
             string patron = @"^\d+(\.\d+)?\s?(mg|g|mcg|ml|%)\s*(\/\s*(\d+(\.\d+)?)?\s?(ml|l))?$";
-            return Regex.IsMatch(concentracion.Trim(), patron, RegexOptions.IgnoreCase);
+            return Regex.IsMatch(concentracion.Trim(), patron, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
         }
 
         private bool EsNombreValido(string nombre)
