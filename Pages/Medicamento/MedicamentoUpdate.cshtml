@@ -74,10 +74,19 @@
 
                         <div class="row mt-3">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label d-block small fw-bold">Precio</label>
+                                <label asp-for="Precio"
+                                        for="Precio"
+                                        class="form-label d-block small fw-bold">
+                                        Precio
+                                </label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light text-success fw-bold">Bs.</span>
-                                    <input asp-for="Precio" type="number" step="0.01" class="form-control med-input" required />
+                                    <input asp-for="Precio"
+                                     id="Precio"
+                                     type="number"
+                                     step="0.01" 
+                                     class="form-control med-input" 
+                                     required />
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
