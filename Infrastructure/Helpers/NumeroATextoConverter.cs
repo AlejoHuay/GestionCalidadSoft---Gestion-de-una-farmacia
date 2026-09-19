@@ -31,7 +31,7 @@ namespace ProyectoArqSoft.Application.Helpers
 
             if (numero >= 1000)
             {
-                texto += ConvertirDecimalATexto(numero / 1000) + " mil ";
+                texto += ConvertirDecimalATexto(numero / 1000m) + " mil ";
                 numero %= 1000;
             }
 
