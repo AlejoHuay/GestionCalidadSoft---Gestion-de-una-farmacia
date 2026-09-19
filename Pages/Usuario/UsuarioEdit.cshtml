@@ -35,11 +35,17 @@
 
                         <!-- ROL / PRIVILEGIOS -->
                         <div class="form-floating mb-3">
-                            <select asp-for="Input.Role" class="form-select med-input">
+                            <select asp-for="Input.Role" 
+                                    id="Input_Role"
+                                    class="form-select med-input">
                                 <option value="Admin">Administrador</option>
                                 <option value="Bioquimico">Bioquímico</option>
                             </select>
-                            <label class="ms-2">Rol / Privilegios</label>
+                            <label asp-for="Input.Role"
+                                   for="Input_Role"
+                                   class="ms-2">
+                                  Rol / Privilegios
+                            </label>
                         </div>
 
                         <!-- ESTADO DE CUENTA -->
