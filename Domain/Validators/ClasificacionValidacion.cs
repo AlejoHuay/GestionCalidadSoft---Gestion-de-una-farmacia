@@ -25,7 +25,7 @@ namespace ProyectoArqSoft.Domain.Validators
                 return Result.Fail("El nombre debe tener entre 3 y 45 caracteres.");
 
             string patron = @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$";
-            if (!Regex.IsMatch(nombre, patron))
+            if (!Regex.IsMatch(nombre, patron, RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El nombre contiene caracteres inválidos.");
 
             if (Regex.IsMatch(nombre, @"^(.)\1+$"))
