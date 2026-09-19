@@ -100,8 +100,14 @@
 
 
                         <div class="col-md-4 form-floating">
-                            <input asp-for="telefono" class="form-control med-input" placeholder="Telf" required />
-                            <label class="ms-2">Telefono</label>
+                            <input asp-for="telefono"
+                              id="telefono"
+                              class="form-control med-input" placeholder="Telf" required />
+                            <label asp-for="telefono"
+                                   for="telefono"
+                                   class="ms-2">
+                                  Telefono
+                            </label>
                         </div>
 
                         <!-- CONTACTO Y ROL -->
