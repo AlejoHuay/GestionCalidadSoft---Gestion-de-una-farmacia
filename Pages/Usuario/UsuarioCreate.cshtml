@@ -82,11 +82,17 @@
                         </div>
 
                         <div class="col-md-4 form-floating">
-                            <select asp-for="role" class="form-select med-input">
+                            <select asp-for="role" 
+                                    id="role"
+                                    class="form-select med-input">
                                 <option value="Bioquimico">Bioquímico (Personal)</option>
                                 <option value="Admin">Administrador (Gestión)</option>
                             </select>
-                            <label class="ms-2">Tipo de acceso</label>
+                            <label asp-for="role"
+                                   for="role"
+                                   class="ms-2">
+                                 Tipo de acceso
+                            </label>
                         </div>
 
                         <!-- MENSAJES DE ERROR -->
