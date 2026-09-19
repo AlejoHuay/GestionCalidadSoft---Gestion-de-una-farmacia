@@ -101,7 +101,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (ci!.Contains(' '))
                 return Result.Fail("El número de carnet no debe contener espacios.");
 
-            if (!Regex.IsMatch(ci, @"^\d{8}(?:-[A-Za-z0-9]{1,2})?$"))
+            if (!Regex.IsMatch(ci, @"^\d{8}(?:-[A-Za-z0-9]{1,2})?$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El CI debe tener 8 dígitos y un complemento opcional de hasta dos caracteres (Ej. 10000000-1B).");
 
             return null;
