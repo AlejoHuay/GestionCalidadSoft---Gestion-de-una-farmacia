@@ -45,7 +45,7 @@ namespace ProyectoArqSoft.Domain.Validators
                 return Result.Fail("El origen debe tener entre 3 y 45 caracteres.");
 
             string patron = @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$";
-            if (!Regex.IsMatch(origen, patron))
+            if (!Regex.IsMatch(origen, patron, RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El origen contiene caracteres inválidos.");
 
             return null;
