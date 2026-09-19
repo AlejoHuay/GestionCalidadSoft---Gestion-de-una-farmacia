@@ -34,8 +34,16 @@
                         </div>
 
                         <div class="col-md-6 form-floating">
-                            <input asp-for="apPaterno" class="form-control med-input" placeholder="Primer Apellido" required />
-                            <label class="ms-2">Primer Apellido</label>
+                            <input asp-for="apPaterno" 
+                            id="apPaterno"
+                            class="form-control med-input" 
+                            placeholder="Primer Apellido" 
+                            required />
+                            <label asp-for="apPaterno"
+                                   for="apPaterno"
+                                   class="ms-2">
+                                  Primer Apellido
+                            </label>
                         </div>
 
                         <div class="col-md-6 form-floating">
