@@ -73,8 +73,14 @@
                         </div>
 
                         <div class="col-md-4 form-floating">
-                            <input asp-for="ciComplemento" class="form-control med-input" placeholder="Complemento" maxlength="2" />
-                            <label class="ms-2">Complemento (opcional)</label>
+                            <input asp-for="ciComplemento"
+                             id="ciComplemento"
+                             class="form-control med-input" placeholder="Complemento" maxlength="2" />
+                            <label asp-for="ciComplemento"
+                                   for="ciComplemento"
+                                   class="ms-2">
+                                  Complemento (opcional)
+                            </label>
                         </div>
 
                         <div class="col-md-4 form-floating">
