@@ -28,12 +28,19 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="Origen" class="form-select med-input" required>
+                            <select asp-for="Origen" 
+                                    id="Origen"
+                                    class="form-select med-input" 
+                                    required>
                                 <option value="Natural">Natural</option>
                                 <option value="Sintético">Sintético</option>
                                 <option value="Semisintético">Semisintético</option>
                             </select>
-                            <label class="ms-2">Origen</label>
+                            <label asp-for="Origen"
+                                   for="Origen"
+                                   class="ms-2">
+                                Origen
+                                </label>
                         </div>
 
                         <div class="form-floating mb-3">
