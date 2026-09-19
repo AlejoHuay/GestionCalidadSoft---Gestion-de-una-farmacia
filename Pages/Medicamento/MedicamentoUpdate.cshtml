@@ -28,7 +28,10 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="Presentacion" class="form-select med-input" required>
+                            <select asp-for="Presentacion"
+                                    id="Presentacion"
+                                    class="form-select med-input"
+                                    required>
                                 <option value="Cápsulas">Cápsulas</option>
                                 <option value="Tabletas">Tabletas</option>
                                 <option value="Jarabe">Jarabe</option>
@@ -39,7 +42,11 @@
                                 <option value="Gotas">Gotas</option>
                                 <option value="Polvo">Polvo</option>
                             </select>
-                            <label class="ms-2">Presentación</label>
+                            <label asp-for="Presentacion"
+                                   for="Presentacion"
+                                   class="ms-2">
+                                Presentación
+                            </label>
                         </div>
 
                         <div class="form-floating mb-3">
