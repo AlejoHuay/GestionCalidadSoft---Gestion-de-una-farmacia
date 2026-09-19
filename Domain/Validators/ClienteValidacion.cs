@@ -107,7 +107,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (razonSocial.Length < 3 || razonSocial.Length > 45)
                 return Result.Fail("La razon social debe tener entre 3 y 45 caracteres.");
 
-            if (!Regex.IsMatch(razonSocial, @"^[\p{L}0-9\s\.\-&]+$"))
+            if (!Regex.IsMatch(razonSocial, @"^[\p{L}0-9\s\.\-&]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("La razon social contiene caracteres no permitidos.");
 
             if (!razonSocial.Any(char.IsLetterOrDigit))
