@@ -43,13 +43,20 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="IdClasificacion" class="form-select med-input" required>
+                            <select asp-for="IdClasificacion"
+                             id="IdClasificacion"
+                             class="form-select med-input"
+                             required>
                                 @foreach (System.Data.DataRow row in Model.ClasificacionDataTable.Rows)
                                 {
                                     <option value="@row["id"]">@row["nombre"]</option>
                                 }
                             </select>
-                            <label class="ms-2">Clasificación</label>
+                            <label asp-for="IdClasificacion"
+                                   for="IdClasificacion"
+                                      class="ms-2">
+                                Clasificación
+                            </label>
                         </div>
 
                         <div class="form-floating mb-1">
