@@ -67,7 +67,7 @@ namespace ProyectoArqSoft.Application.Services
                     _smtpSettings.RemitenteEmail,
                     _smtpSettings.Password
                 );
-                client.EnableSsl = _smtpSettings.UseSsl;
+                client.EnableSsl = true;
 
                 client.Send(message);
 
