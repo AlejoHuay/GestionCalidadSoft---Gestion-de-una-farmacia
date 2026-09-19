@@ -84,7 +84,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (nit.Length > 12)
                 return Result.Fail("El NIT debe contener entre 5 y 12 digitos; sobran digitos.");
 
-            if (!Regex.IsMatch(nit, @"^\d{5,12}$"))
+            if (!Regex.IsMatch(nit, @"^\d{5,12}$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El NIT debe contener entre 5 y 12 digitos numericos.");
 
             if (nit.All(c => c == '0'))
