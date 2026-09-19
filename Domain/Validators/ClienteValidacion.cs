@@ -55,7 +55,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (nit.StartsWith("+") || nit.StartsWith("-"))
                 return Result.Fail("El NIT no debe contener signos positivos ni negativos.");
 
-            if (Regex.IsMatch(nit, @"^\d+\.\d+$"))
+            if (Regex.IsMatch(nit, @"^\d+\.\d+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El NIT no debe contener numeros decimales.");
 
             bool contieneLetras = nit.Any(char.IsLetter);
