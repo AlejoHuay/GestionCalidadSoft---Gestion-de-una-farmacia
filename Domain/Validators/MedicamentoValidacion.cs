@@ -94,7 +94,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (nombre.Length < 3 || nombre.Length > 100)
                 return false;
 
-            if (Regex.IsMatch(nombre, @"^(.)\1+$"))
+            if (Regex.IsMatch(nombre, @"^(.)\1+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return false;
 
             return true;
