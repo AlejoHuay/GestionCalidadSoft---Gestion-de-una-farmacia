@@ -15,7 +15,7 @@ namespace ProyectoArqSoft.Pages.Auth
             return CerrarSesion();
         }
 
-        private IActionResult CerrarSesion()
+        private RedirectToPageResult CerrarSesion()
         {
             HttpContext.Session.Clear();
             return RedirectToPage("/Index");

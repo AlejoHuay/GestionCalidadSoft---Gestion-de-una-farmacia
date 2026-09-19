@@ -21,29 +21,66 @@
 
                         <!-- DATOS PERSONALES -->
                         <div class="col-md-12 form-floating mb-1">
-                            <input asp-for="nombres" class="form-control med-input" placeholder="Nombre" required />
-                            <label class="ms-2">Nombres</label>
+                            <input asp-for="nombres"
+                                   id="nombres"
+                                   class="form-control med-input" 
+                                   placeholder="Nombre" 
+                                   required />
+                            <label asp-for="nombres"
+                                   for="nombres"
+                                   class="ms-2">
+                                  Nombres
+                            </label>
                         </div>
 
                         <div class="col-md-6 form-floating">
-                            <input asp-for="apPaterno" class="form-control med-input" placeholder="Primer Apellido" required />
-                            <label class="ms-2">Primer Apellido</label>
+                            <input asp-for="apPaterno" 
+                            id="apPaterno"
+                            class="form-control med-input" 
+                            placeholder="Primer Apellido" 
+                            required />
+                            <label asp-for="apPaterno"
+                                   for="apPaterno"
+                                   class="ms-2">
+                                  Primer Apellido
+                            </label>
                         </div>
 
                         <div class="col-md-6 form-floating">
-                            <input asp-for="apMaterno" class="form-control med-input" placeholder="Segundo Apellido" />
-                            <label class="ms-2">Segundo Apellido</label>
+                            <input asp-for="apMaterno" 
+                            id="apMaterno"
+                            class="form-control med-input" 
+                            placeholder="Segundo Apellido" />
+                            <label asp-for="apMaterno"
+                                   for="apMaterno"
+                                   class="ms-2">
+                                  Segundo Apellido
+                            </label>
                         </div>
 
                         <!-- IDENTIFICACI�N -->
                         <div class="col-md-4 form-floating">
-                            <input asp-for="ci" class="form-control med-input" placeholder="CI" required />
-                            <label class="ms-2">C.I.</label>
+                            <input asp-for="ci"
+                            id="ci"
+                            class="form-control med-input" 
+                            placeholder="CI" 
+                            required />
+                            <label asp-for="ci"
+                                   for="ci"
+                                   class="ms-2">
+                                  C.I.
+                            </label>
                         </div>
 
                         <div class="col-md-4 form-floating">
-                            <input asp-for="ciComplemento" class="form-control med-input" placeholder="Complemento" maxlength="2" />
-                            <label class="ms-2">Complemento (opcional)</label>
+                            <input asp-for="ciComplemento"
+                             id="ciComplemento"
+                             class="form-control med-input" placeholder="Complemento" maxlength="2" />
+                            <label asp-for="ciComplemento"
+                                   for="ciComplemento"
+                                   class="ms-2">
+                                  Complemento (opcional)
+                            </label>
                         </div>
 
                         <div class="col-md-4 form-floating">
@@ -63,22 +100,42 @@
 
 
                         <div class="col-md-4 form-floating">
-                            <input asp-for="telefono" class="form-control med-input" placeholder="Telf" required />
-                            <label class="ms-2">Telefono</label>
+                            <input asp-for="telefono"
+                              id="telefono"
+                              class="form-control med-input" placeholder="Telf" required />
+                            <label asp-for="telefono"
+                                   for="telefono"
+                                   class="ms-2">
+                                  Telefono
+                            </label>
                         </div>
 
                         <!-- CONTACTO Y ROL -->
                         <div class="col-md-8 form-floating">
-                            <input asp-for="email" type="email" class="form-control med-input" placeholder="Email" required />
-                            <label class="ms-2">Correo Electrónico oficial</label>
+                            <input asp-for="email"
+                            id="email"
+                            type="email" class="form-control med-input" 
+                            placeholder="Email" 
+                            required />
+                            <label asp-for="email"
+                                   for="email"
+                                   class="ms-2">
+                                  Correo Electrónico oficial
+                            </label>
                         </div>
 
                         <div class="col-md-4 form-floating">
-                            <select asp-for="role" class="form-select med-input">
+                            <select asp-for="role" 
+                                    id="role"
+                                    class="form-select med-input">
                                 <option value="Bioquimico">Bioquímico (Personal)</option>
                                 <option value="Admin">Administrador (Gestión)</option>
                             </select>
-                            <label class="ms-2">Tipo de acceso</label>
+                            <label asp-for="role"
+                                   for="role"
+                                   class="ms-2">
+                                 Tipo de acceso
+                            </label>
                         </div>
 
                         <!-- MENSAJES DE ERROR -->

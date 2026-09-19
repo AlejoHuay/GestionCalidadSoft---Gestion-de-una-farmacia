@@ -15,12 +15,23 @@
                         <input type="hidden" asp-for="IdMedicamento" />
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Nombre" class="form-control med-input" placeholder="Nombre" required />
-                            <label class="ms-2">Nombre del Medicamento</label>
+                            <input asp-for="Nombre"
+                            id="Nombre"
+                            class="form-control med-input" 
+                            placeholder="Nombre" 
+                            required />
+                            <label asp-for="Nombre"
+                                   for="Nombre"
+                                   class="ms-2">
+                                  Nombre del Medicamento
+                            </label>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="Presentacion" class="form-select med-input" required>
+                            <select asp-for="Presentacion"
+                                    id="Presentacion"
+                                    class="form-select med-input"
+                                    required>
                                 <option value="Cápsulas">Cápsulas</option>
                                 <option value="Tabletas">Tabletas</option>
                                 <option value="Jarabe">Jarabe</option>
@@ -31,35 +42,72 @@
                                 <option value="Gotas">Gotas</option>
                                 <option value="Polvo">Polvo</option>
                             </select>
-                            <label class="ms-2">Presentación</label>
+                            <label asp-for="Presentacion"
+                                   for="Presentacion"
+                                   class="ms-2">
+                                Presentación
+                            </label>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="IdClasificacion" class="form-select med-input" required>
+                            <select asp-for="IdClasificacion"
+                             id="IdClasificacion"
+                             class="form-select med-input"
+                             required>
                                 @foreach (System.Data.DataRow row in Model.ClasificacionDataTable.Rows)
                                 {
                                     <option value="@row["id"]">@row["nombre"]</option>
                                 }
                             </select>
-                            <label class="ms-2">Clasificación</label>
+                            <label asp-for="IdClasificacion"
+                                   for="IdClasificacion"
+                                      class="ms-2">
+                                Clasificación
+                            </label>
                         </div>
 
                         <div class="form-floating mb-1">
-                            <input asp-for="Concentracion" class="form-control med-input" placeholder="Ej: 500 mg" required />
-                            <label class="ms-2">Concentración</label>
+                            <input asp-for="Concentracion"
+                              id="Concentracion"
+                              class="form-control med-input"
+                              placeholder="Ej: 500 mg" 
+                              required />
+                            <label asp-for="Concentracion"
+                                      for="Concentracion"
+                                      class="ms-2">
+                                  Concentración
+                            </label>
                         </div>
 
                         <div class="row mt-3">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label d-block small fw-bold">Precio</label>
+                                <label asp-for="Precio"
+                                        for="Precio"
+                                        class="form-label d-block small fw-bold">
+                                        Precio
+                                </label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light text-success fw-bold">Bs.</span>
-                                    <input asp-for="Precio" type="number" step="0.01" class="form-control med-input" required />
+                                    <input asp-for="Precio"
+                                     id="Precio"
+                                     type="number"
+                                     step="0.01" 
+                                     class="form-control med-input" 
+                                     required />
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label d-block small fw-bold">Stock Actual</label>
-                                <input asp-for="Stock" type="number" min="0" class="form-control med-input" required />
+                                <label 
+                                        asp-for="Stock"
+                                        for="Stock"
+                                        class="form-label d-block small fw-bold">
+                                        Stock Actual
+                                </label>
+                                <input asp-for="Stock"
+                                id="Stock" 
+                                type="number" min="0" 
+                                class="form-control med-input" 
+                                required />
                             </div>
                         </div>
 

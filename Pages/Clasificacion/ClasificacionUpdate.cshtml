@@ -15,22 +15,46 @@
                         <input type="hidden" asp-for="IdClasificacion" />
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Nombre" class="form-control med-input" placeholder="Nombre" required />
-                            <label class="ms-2">Nombre de Clasificación</label>
+                            <input asp-for="Nombre" 
+                            id="Nombre"
+                            class="form-control med-input" 
+                            placeholder="Nombre" 
+                            required />
+                            <label asp-for="Nombre"
+                                   for="Nombre"
+                                   class="ms-2">
+                                 Nombre de Clasificación
+                                 </label>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="Origen" class="form-select med-input" required>
+                            <select asp-for="Origen" 
+                                    id="Origen"
+                                    class="form-select med-input" 
+                                    required>
                                 <option value="Natural">Natural</option>
                                 <option value="Sintético">Sintético</option>
                                 <option value="Semisintético">Semisintético</option>
                             </select>
-                            <label class="ms-2">Origen</label>
+                            <label asp-for="Origen"
+                                   for="Origen"
+                                   class="ms-2">
+                                Origen
+                                </label>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <textarea asp-for="Descripcion" class="form-control med-input" placeholder="Descripción" style="height: 120px" required></textarea>
-                            <label class="ms-2">Descripción</label>
+                            <textarea asp-for="Descripcion" 
+                            id="Descripcion"
+                            class="form-control med-input" 
+                            placeholder="Descripción" 
+                            style="height: 120px" 
+                            required></textarea>
+                            <label asp-for="Descripcion"
+                                   for="Descripcion"
+                                   class="ms-2">
+                                 Descripción
+                                 </label>
                         </div>
 
                         @if (!string.IsNullOrEmpty(Model.Estado.MensajeError))

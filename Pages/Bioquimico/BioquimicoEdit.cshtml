@@ -24,24 +24,45 @@
                         <input type="hidden" asp-for="Input.Ci" id="CiCompleto" />
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Nombres" class="form-control med-input" placeholder="Nombres" />
-                            <label class="ms-2">Nombres</label>
+                            <input asp-for="Input.Nombres"
+                            id="Input_Nombres"
+                            class="form-control med-input" 
+                            placeholder="Nombres" />
+                            <label asp-for="Input.Nombres"
+                            for="Input_Nombres"
+                            class="ms-2">
+                         Nombres
+                         </label>
                             <span asp-validation-for="Input.Nombres" class="text-danger"></span>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Input.ApellidoPaterno" class="form-control med-input" placeholder="Primer apellido" />
-                                    <label class="ms-2">Primer apellido</label>
+                                    <input asp-for="Input.ApellidoPaterno" 
+                                    id="Input_ApellidoPaterno"
+                                    class="form-control med-input" 
+                                    placeholder="Primer apellido" />
+                                    <label asp-for="Input.ApellidoPaterno"
+                                           for="Input_ApellidoPaterno"
+                                           class="ms-2">
+                                          Primer apellido
+                                    </label>
                                     <span asp-validation-for="Input.ApellidoPaterno" class="text-danger"></span>
                                 </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="Input.ApellidoMaterno" class="form-control med-input" placeholder="Segundo apellido" />
-                                    <label class="ms-2">Segundo apellido (opcional)</label>
+                                    <input asp-for="Input.ApellidoMaterno"
+                                     id="Input_ApellidoMaterno"
+                                     class="form-control med-input"
+                                     placeholder="Segundo apellido" />
+                                     <label asp-for="Input.ApellidoMaterno"
+                                       for="Input_ApellidoMaterno"
+                                       class="ms-2">
+                                     Segundo apellido (opcional)
+                                      </label>
                                     <span asp-validation-for="Input.ApellidoMaterno" class="text-danger"></span>
                                 </div>
                             </div>
@@ -50,21 +71,37 @@
                         <div class="row">
                             <div class="col-md-7 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="CiBase" class="form-control med-input" placeholder="Carnet de identidad" />
-                                    <label class="ms-2">Carnet de identidad</label>
+                                    <input asp-for="CiBase"
+                                     id="CiBase"
+                                     class="form-control med-input" 
+                                     placeholder="Carnet de identidad" />
+                                    <label asp-for="CiBase"
+                                    for="CiBase"
+                                    class="ms-2">
+                                   Carnet de identidad
+                                   </label>
                                 </div>
                             </div>
 
                             <div class="col-md-2 mb-3">
                                 <div class="form-floating">
-                                    <input asp-for="CiComplemento" class="form-control med-input" placeholder="Complemento" maxlength="2" />
-                                    <label class="ms-2">Compl.</label>
+                                    <input asp-for="CiComplemento" 
+                                     id="CiComplemento"
+                                    class="form-control med-input" 
+                                    placeholder="Complemento" maxlength="2" />
+                                    <label asp-for="CiComplemento"
+                                    for="CiComplemento"
+                                    class="ms-2">
+                                   Compl.
+                                    </label>
                                 </div>
                             </div>
 
                             <div class="col-md-3 mb-3">
                                 <div class="form-floating">
-                                    <select asp-for="Input.CiExtencion" class="form-select med-input">
+                                    <select asp-for="Input.CiExtencion" 
+                                     id="Input_CiExtencion"
+                                     class="form-select med-input">
                                         <option value="">Seleccione</option>
                                         <option value="BE">Beni</option>
                                         <option value="CB">Cochabamba</option>
@@ -75,28 +112,49 @@
                                         <option value="PT">Potosí</option>
                                         <option value="SC">Santa Cruz</option>
                                         <option value="TJ">Tarija</option>
-                                    </select>
-                                    <label class="ms-2">Expedido</label>
+                                     </select>
+                                     <label asp-for="Input.CiExtencion"
+                                        for="Input_CiExtencion"
+                                        class="ms-2">
+                                      Expedido
+                                      </label>
                                     <span asp-validation-for="Input.CiExtencion" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Telefono" class="form-control med-input" placeholder="Teléfono" />
-                            <label class="ms-2">Teléfono</label>
+                            <input asp-for="Input.Telefono"
+                            id="Input_Telefono" 
+                            class="form-control med-input" 
+                            placeholder="Teléfono" />
+                            <label asp-for="Input.Telefono"
+                               for="Input_Telefono"
+                               class="ms-2">
+                             Teléfono
+                             </label>
                             <span asp-validation-for="Input.Telefono" class="text-danger"></span>
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Email" type="email" class="form-control med-input" placeholder="Correo electrónico" />
-                            <label class="ms-2">Correo electrónico</label>
+                            <input asp-for="Input.Email"
+                             id="Input_Email"
+                             type="email" 
+                             class="form-control med-input" 
+                             placeholder="Correo electrónico" />
+                                <label asp-for="Input.Email"
+                                   for="Input_Email"
+                                   class="ms-2">
+                                  Correo electrónico
+                                </label>
                             <span asp-validation-for="Input.Email" class="text-danger"></span>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-8">
-                                <label class="form-label fw-bold small text-muted mb-1">Nombre de usuario (Sistema)</label>
+                                 <div  class="form-label fw-bold small text-muted mb-1">
+                                    Nombre de usuario (Sistema)
+                                 </div>
                                 <div class="form-control bg-light border-0 py-2">
                                     <!-- Mostrar el nombre de usuario como texto -->
                                     <span>@Model.Input.UserName</span>
@@ -104,11 +162,17 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <select asp-for="Input.Activo" class="form-select med-input">
+                                    <select asp-for="Input.Activo" 
+                                     id="Input_Activo"
+                                     class="form-select med-input">
                                         <option value="1">Activo</option>
                                         <option value="0">Inactivo</option>
                                     </select>
-                                    <label class="ms-2">Estado</label>
+                                    <label asp-for="Input.Activo"
+                                           for="Input_Activo"
+                                           class="ms-2">
+                                        Estado
+                                    </label>
                                 </div>
                             </div>
                         </div>

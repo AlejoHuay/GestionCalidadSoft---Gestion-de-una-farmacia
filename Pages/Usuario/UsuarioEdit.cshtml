@@ -19,28 +19,48 @@
 
                         <!-- CORREO ELECTRÓNICO -->
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Email" class="form-control med-input" placeholder="Email" required />
-                            <label class="ms-2">Correo Electrónico</label>
+                            <input asp-for="Input.Email"
+                            id="Input_Email"
+                            class="form-control med-input" 
+                            placeholder="Email" 
+                            required />
+                            <label asp-for="Input.Email"
+                                   for="Input_Email"
+                                   class="ms-2">
+                                  Correo Electrónico
+                            </label>
                         </div>
 
                         <!-- ELIMINADO: NOMBRES (Ya no es parte del formulario) -->
 
                         <!-- ROL / PRIVILEGIOS -->
                         <div class="form-floating mb-3">
-                            <select asp-for="Input.Role" class="form-select med-input">
+                            <select asp-for="Input.Role" 
+                                    id="Input_Role"
+                                    class="form-select med-input">
                                 <option value="Admin">Administrador</option>
                                 <option value="Bioquimico">Bioquímico</option>
                             </select>
-                            <label class="ms-2">Rol / Privilegios</label>
+                            <label asp-for="Input.Role"
+                                   for="Input_Role"
+                                   class="ms-2">
+                                  Rol / Privilegios
+                            </label>
                         </div>
 
                         <!-- ESTADO DE CUENTA -->
                         <div class="form-floating mb-4">
-                            <select asp-for="Input.Activo" class="form-select med-input">
+                            <select asp-for="Input.Activo"
+                                    id="Input_Activo"
+                                    class="form-select med-input">
                                 <option value="1">Habilitado</option>
                                 <option value="0">Deshabilitado (Baja)</option>
                             </select>
-                            <label class="ms-2">Estado de Cuenta</label>
+                            <label asp-for="Input.Activo"
+                                   for="Input_Activo"
+                                   class="ms-2">
+                                  Estado de Cuenta
+                            </label>
                         </div>
 
                         @if (!string.IsNullOrEmpty(Model.Estado.MensajeError))
