@@ -21,8 +21,16 @@
 
                         <!-- DATOS PERSONALES -->
                         <div class="col-md-12 form-floating mb-1">
-                            <input asp-for="nombres" class="form-control med-input" placeholder="Nombre" required />
-                            <label class="ms-2">Nombres</label>
+                            <input asp-for="nombres"
+                                   id="nombres"
+                                   class="form-control med-input" 
+                                   placeholder="Nombre" 
+                                   required />
+                            <label asp-for="nombres"
+                                   for="nombres"
+                                   class="ms-2">
+                                  Nombres
+                            </label>
                         </div>
 
                         <div class="col-md-6 form-floating">
