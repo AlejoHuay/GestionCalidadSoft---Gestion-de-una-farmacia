@@ -97,8 +97,17 @@
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label d-block small fw-bold">Stock Actual</label>
-                                <input asp-for="Stock" type="number" min="0" class="form-control med-input" required />
+                                <label 
+                                        asp-for="Stock"
+                                        for="Stock"
+                                        class="form-label d-block small fw-bold">
+                                        Stock Actual
+                                </label>
+                                <input asp-for="Stock"
+                                id="Stock" 
+                                type="number" min="0" 
+                                class="form-control med-input" 
+                                required />
                             </div>
                         </div>
 
