@@ -115,7 +115,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (telefono!.Length != 8)
                 return Result.Fail("El teléfono debe tener exactamente 8 dígitos.");
 
-            if (!Regex.IsMatch(telefono, @"^\d{8}$"))
+            if (!Regex.IsMatch(telefono, @"^\d{8}$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El teléfono debe contener solo dígitos numéricos.");
 
             return null;
