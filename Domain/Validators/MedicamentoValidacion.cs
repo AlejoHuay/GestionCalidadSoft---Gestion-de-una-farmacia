@@ -88,7 +88,7 @@ namespace ProyectoArqSoft.Domain.Validators
 
             string patron = @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]+$";
 
-            if (!Regex.IsMatch(nombre, patron))
+            if (!Regex.IsMatch(nombre, patron, RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return false;
 
             if (nombre.Length < 3 || nombre.Length > 100)
