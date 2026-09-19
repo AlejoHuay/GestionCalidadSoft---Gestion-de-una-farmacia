@@ -126,7 +126,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (string.IsNullOrWhiteSpace(email))
                 return Result.Fail("El email es obligatorio.");
 
-            if (!Regex.IsMatch(email!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!Regex.IsMatch(email!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El formato del email no es válido.");
 
             if (email!.Length > 255)
