@@ -20,7 +20,7 @@ namespace ProyectoArqSoft.Domain.Validators
 
             string patronValido = @"^([a-zA-Z\s]+|\d+|\d+-\d[A-Z])$";
 
-            if (!Regex.IsMatch(filtro, patronValido))
+            if (!Regex.IsMatch(filtro, patronValido, RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("Criterio inválido.");
 
             return Result.Ok();
