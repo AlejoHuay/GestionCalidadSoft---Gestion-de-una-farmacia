@@ -19,8 +19,16 @@
 
                         <!-- CORREO ELECTRÓNICO -->
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Email" class="form-control med-input" placeholder="Email" required />
-                            <label class="ms-2">Correo Electrónico</label>
+                            <input asp-for="Input.Email"
+                            id="Input_Email"
+                            class="form-control med-input" 
+                            placeholder="Email" 
+                            required />
+                            <label asp-for="Input.Email"
+                                   for="Input_Email"
+                                   class="ms-2">
+                                  Correo Electrónico
+                            </label>
                         </div>
 
                         <!-- ELIMINADO: NOMBRES (Ya no es parte del formulario) -->
