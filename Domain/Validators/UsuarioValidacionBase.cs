@@ -21,7 +21,7 @@ namespace ProyectoArqSoft.Domain.Validators
 
         protected static Result? RegexValido(string valor, string patron, string mensaje)
         {
-            return Regex.IsMatch(valor, patron) ? null : Result.Fail(mensaje);
+            return Regex.IsMatch(valor, patron, RegexOptions.None, TimeSpan.FromSeconds(1)) ? null : Result.Fail(mensaje);
         }
 
         protected static Result? EmailValido(string email, bool obligatorio = true)
