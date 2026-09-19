@@ -124,7 +124,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (correoElectronico.Length > 45)
                 return Result.Fail("El correo electronico no puede superar los 45 caracteres.");
 
-            if (!Regex.IsMatch(correoElectronico, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!Regex.IsMatch(correoElectronico, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El correo electronico no tiene un formato valido.");
 
             return null;
