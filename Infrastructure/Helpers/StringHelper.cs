@@ -59,7 +59,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             if (string.IsNullOrWhiteSpace(texto))
                 return "";
 
-            return Regex.Replace(texto.Trim(), @"\s+", "").ToUpper();
+            return Regex.Replace(texto.Trim(), @"\s+", "", RegexOptions.None, TimeSpan.FromSeconds(1)).ToUpper();
         }
         public static bool NombrePareceFragmentado(string? nombres)
         {
