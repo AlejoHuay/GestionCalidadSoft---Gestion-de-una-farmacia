@@ -31,7 +31,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
                 return "";
 
             // Trim + quitar espacios múltiples
-            texto = Regex.Replace(texto.Trim(), @"\s+", " ");
+            texto = Regex.Replace(texto.Trim(), @"\s+", " ", RegexOptions.None, TimeSpan.FromSeconds(1));
 
             return texto;
         }
