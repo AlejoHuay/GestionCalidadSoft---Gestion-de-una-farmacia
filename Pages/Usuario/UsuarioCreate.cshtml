@@ -112,8 +112,16 @@
 
                         <!-- CONTACTO Y ROL -->
                         <div class="col-md-8 form-floating">
-                            <input asp-for="email" type="email" class="form-control med-input" placeholder="Email" required />
-                            <label class="ms-2">Correo Electrónico oficial</label>
+                            <input asp-for="email"
+                            id="email"
+                            type="email" class="form-control med-input" 
+                            placeholder="Email" 
+                            required />
+                            <label asp-for="email"
+                                   for="email"
+                                   class="ms-2">
+                                  Correo Electrónico oficial
+                            </label>
                         </div>
 
                         <div class="col-md-4 form-floating">
