@@ -55,7 +55,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (nit.StartsWith("+") || nit.StartsWith("-"))
                 return Result.Fail("El NIT no debe contener signos positivos ni negativos.");
 
-            if (Regex.IsMatch(nit, @"^\d+\.\d+$"))
+            if (Regex.IsMatch(nit, @"^\d+\.\d+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El NIT no debe contener numeros decimales.");
 
             bool contieneLetras = nit.Any(char.IsLetter);
@@ -84,7 +84,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (nit.Length > 12)
                 return Result.Fail("El NIT debe contener entre 5 y 12 digitos; sobran digitos.");
 
-            if (!Regex.IsMatch(nit, @"^\d{5,12}$"))
+            if (!Regex.IsMatch(nit, @"^\d{5,12}$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El NIT debe contener entre 5 y 12 digitos numericos.");
 
             if (nit.All(c => c == '0'))
@@ -107,7 +107,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (razonSocial.Length < 3 || razonSocial.Length > 45)
                 return Result.Fail("La razon social debe tener entre 3 y 45 caracteres.");
 
-            if (!Regex.IsMatch(razonSocial, @"^[\p{L}0-9\s\.\-&]+$"))
+            if (!Regex.IsMatch(razonSocial, @"^[\p{L}0-9\s\.\-&]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("La razon social contiene caracteres no permitidos.");
 
             if (!razonSocial.Any(char.IsLetterOrDigit))
@@ -124,7 +124,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (correoElectronico.Length > 45)
                 return Result.Fail("El correo electronico no puede superar los 45 caracteres.");
 
-            if (!Regex.IsMatch(correoElectronico, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!Regex.IsMatch(correoElectronico, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El correo electronico no tiene un formato valido.");
 
             return null;

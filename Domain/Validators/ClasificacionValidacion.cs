@@ -25,10 +25,10 @@ namespace ProyectoArqSoft.Domain.Validators
                 return Result.Fail("El nombre debe tener entre 3 y 45 caracteres.");
 
             string patron = @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$";
-            if (!Regex.IsMatch(nombre, patron))
+            if (!Regex.IsMatch(nombre, patron, RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El nombre contiene caracteres inválidos.");
 
-            if (Regex.IsMatch(nombre, @"^(.)\1+$"))
+            if (Regex.IsMatch(nombre, @"^(.)\1+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El nombre no puede estar compuesto por un único carácter repetido.");
 
             return null;
@@ -45,7 +45,7 @@ namespace ProyectoArqSoft.Domain.Validators
                 return Result.Fail("El origen debe tener entre 3 y 45 caracteres.");
 
             string patron = @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$";
-            if (!Regex.IsMatch(origen, patron))
+            if (!Regex.IsMatch(origen, patron, RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El origen contiene caracteres inválidos.");
 
             return null;

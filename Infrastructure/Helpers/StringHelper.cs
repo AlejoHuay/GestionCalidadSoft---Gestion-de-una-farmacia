@@ -14,7 +14,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             if (string.IsNullOrWhiteSpace(texto))
                 return "";
 
-            return Regex.Replace(texto.Trim(), @"\s+", " ");
+            return Regex.Replace(texto.Trim(), @"\s+", " ", RegexOptions.None, TimeSpan.FromSeconds(1));
         }
 
         public static string QuitarEspacios(string? texto)
@@ -22,7 +22,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             if (string.IsNullOrWhiteSpace(texto))
                 return "";
 
-            return Regex.Replace(texto, @"\s+", "");
+            return Regex.Replace(texto, @"\s+", "", RegexOptions.None, TimeSpan.FromSeconds(1));
         }
 
         public static string LimpiarTexto(string? texto)
@@ -31,7 +31,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
                 return "";
 
             // Trim + quitar espacios múltiples
-            texto = Regex.Replace(texto.Trim(), @"\s+", " ");
+            texto = Regex.Replace(texto.Trim(), @"\s+", " ", RegexOptions.None, TimeSpan.FromSeconds(1));
 
             return texto;
         }
@@ -51,7 +51,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             if (string.IsNullOrWhiteSpace(texto))
                 return "";
 
-            return Regex.Replace(texto, @"\D", "");
+            return Regex.Replace(texto, @"\D", "", RegexOptions.None, TimeSpan.FromSeconds(1));
         }
 
         public static string LimpiarCI(string? texto)
@@ -59,7 +59,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             if (string.IsNullOrWhiteSpace(texto))
                 return "";
 
-            return Regex.Replace(texto.Trim(), @"\s+", "").ToUpper();
+            return Regex.Replace(texto.Trim(), @"\s+", "", RegexOptions.None, TimeSpan.FromSeconds(1)).ToUpper();
         }
         public static bool NombrePareceFragmentado(string? nombres)
         {

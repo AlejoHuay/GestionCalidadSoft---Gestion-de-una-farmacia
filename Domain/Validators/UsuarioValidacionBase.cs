@@ -21,7 +21,7 @@ namespace ProyectoArqSoft.Domain.Validators
 
         protected static Result? RegexValido(string valor, string patron, string mensaje)
         {
-            return Regex.IsMatch(valor, patron) ? null : Result.Fail(mensaje);
+            return Regex.IsMatch(valor, patron, RegexOptions.None, TimeSpan.FromSeconds(1)) ? null : Result.Fail(mensaje);
         }
 
         protected static Result? EmailValido(string email, bool obligatorio = true)
@@ -37,7 +37,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (email.Length > 100)
                 return Result.Fail("El correo electrónico no puede tener más de 100 caracteres.");
 
-            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El formato del correo electrónico no es válido.");
 
             return null;

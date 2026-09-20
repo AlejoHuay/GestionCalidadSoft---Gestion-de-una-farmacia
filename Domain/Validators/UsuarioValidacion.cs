@@ -101,7 +101,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (ci!.Contains(' '))
                 return Result.Fail("El número de carnet no debe contener espacios.");
 
-            if (!Regex.IsMatch(ci, @"^\d{8}(?:-[A-Za-z0-9]{1,2})?$"))
+            if (!Regex.IsMatch(ci, @"^\d{8}(?:-[A-Za-z0-9]{1,2})?$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El CI debe tener 8 dígitos y un complemento opcional de hasta dos caracteres (Ej. 10000000-1B).");
 
             return null;
@@ -115,7 +115,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (telefono!.Length != 8)
                 return Result.Fail("El teléfono debe tener exactamente 8 dígitos.");
 
-            if (!Regex.IsMatch(telefono, @"^\d{8}$"))
+            if (!Regex.IsMatch(telefono, @"^\d{8}$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El teléfono debe contener solo dígitos numéricos.");
 
             return null;
@@ -126,7 +126,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (string.IsNullOrWhiteSpace(email))
                 return Result.Fail("El email es obligatorio.");
 
-            if (!Regex.IsMatch(email!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!Regex.IsMatch(email!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El formato del email no es válido.");
 
             if (email!.Length > 255)

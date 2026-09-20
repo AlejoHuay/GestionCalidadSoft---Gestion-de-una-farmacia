@@ -15,7 +15,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
             string baseUser = $"{nombre}.{apellido}.{ciNormalizado}".ToLower();
 
             baseUser = QuitarTildes(baseUser);
-            baseUser = Regex.Replace(baseUser, @"[^a-z0-9\.]", "");
+            baseUser = Regex.Replace(baseUser, @"[^a-z0-9\.]", "", RegexOptions.None, TimeSpan.FromSeconds(1));
 
             return baseUser;
         }
@@ -80,7 +80,7 @@ namespace ProyectoArqSoft.Infrastructure.Helpers
 
             // Quita guiones, espacios y cualquier cosa rara
             // Deja solo letras y números
-            return Regex.Replace(ci, @"[^A-Z0-9]", "");
+            return Regex.Replace(ci, @"[^A-Z0-9]", "", RegexOptions.None, TimeSpan.FromSeconds(1));
         }
 
         private static string QuitarTildes(string texto)
