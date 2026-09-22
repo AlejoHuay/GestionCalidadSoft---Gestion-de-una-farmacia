@@ -38,7 +38,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return resultado ?? Result.Ok();
         }
 
-        public Result ValidarActualizacion(UsuarioActualizarDto dto)
+        public static Result ValidarActualizacion(UsuarioActualizarDto dto)
         {
             if (dto == null)
                 return Result.Fail("Los datos del usuario no pueden ser nulos.");

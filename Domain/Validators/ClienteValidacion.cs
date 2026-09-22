@@ -17,7 +17,7 @@ namespace ProyectoArqSoft.Domain.Validators
                 ?? Result.Ok();
         }
 
-        private Result? ValidarNit(string nit)
+        private static Result? ValidarNit(string nit)
         {
             Result? resultadoBasico = ValidarNitObligatorioYEspacios(nit);
             if (resultadoBasico != null)

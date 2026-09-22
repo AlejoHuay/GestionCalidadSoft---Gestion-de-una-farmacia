@@ -17,7 +17,7 @@ namespace ProyectoArqSoft.Domain.Validators
                 ?? Result.Ok();
         }
 
-        private Result? ValidarNombre(string nombre)
+        private static Result? ValidarNombre(string nombre)
         {
             if (string.IsNullOrWhiteSpace(nombre))
                 return Result.Fail("El nombre es obligatorio.");
@@ -43,7 +43,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarConcentracion(string concentracion)
+        private static Result? ValidarConcentracion(string concentracion)
         {
             if (string.IsNullOrWhiteSpace(concentracion))
                 return Result.Fail("La concentración es obligatoria.");

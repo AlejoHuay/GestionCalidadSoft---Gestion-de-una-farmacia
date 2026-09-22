@@ -452,7 +452,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             }
         }
 
-        private Result ValidarVentaParaRegistro(NpgsqlConnection connection, NpgsqlTransaction transaction, Venta venta)
+        private static Result ValidarVentaParaRegistro(NpgsqlConnection connection, NpgsqlTransaction transaction, Venta venta)
         {
             if (!ClienteActivo(connection, transaction, venta.IdCliente))
                 return Result.Fail("El cliente no existe o está inactivo.");
@@ -463,7 +463,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return ValidarMedicamentosYStock(connection, transaction, venta.Detalles);
         }
 
-        private Result ValidarVentaParaActualizacion(NpgsqlConnection connection, NpgsqlTransaction transaction, Venta venta)
+        private static Result ValidarVentaParaActualizacion(NpgsqlConnection connection, NpgsqlTransaction transaction, Venta venta)
         {
             if (!ClienteActivo(connection, transaction, venta.IdCliente))
                 return Result.Fail("El cliente no existe o está inactivo.");
