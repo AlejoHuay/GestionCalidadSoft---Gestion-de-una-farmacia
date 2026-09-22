@@ -67,7 +67,7 @@ namespace ProyectoArqSoft.Pages
                 Stock,
                 idUsuario.Value);
 
-            if (resultado.IsSuccess == false)
+            if (!resultado.IsSuccess)
             {
                 Estado.MensajeError = resultado.Error;
                 CargarClasificaciones();

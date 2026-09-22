@@ -46,13 +46,13 @@ namespace ProyectoArqSoft.Application.Services
             cliente.IdUsuario = idUsuario;
 
             var validacion = _validador.Validar(cliente);
-            if (validacion.IsSuccess == false)
+            if (!validacion.IsSuccess)
                 return validacion;
 
             LimpiarCampos(cliente);
 
             var validacionDuplicado = ValidarDuplicado(cliente);
-            if (validacionDuplicado.IsSuccess == false)
+            if (!validacionDuplicado.IsSuccess)
                 return validacionDuplicado;
 
             if (_repository.Insert(cliente) <= 0)
@@ -73,13 +73,13 @@ namespace ProyectoArqSoft.Application.Services
             cliente.IdUsuario = idUsuario;
 
             var validacion = _validador.Validar(cliente);
-            if (validacion.IsSuccess == false)
+            if (!validacion.IsSuccess)
                 return validacion;
 
             LimpiarCampos(cliente);
 
             var validacionDuplicado = ValidarDuplicado(cliente);
-            if (validacionDuplicado.IsSuccess == false)
+            if (!validacionDuplicado.IsSuccess)
                 return validacionDuplicado;
 
             if (_repository.Update(cliente) <= 0)

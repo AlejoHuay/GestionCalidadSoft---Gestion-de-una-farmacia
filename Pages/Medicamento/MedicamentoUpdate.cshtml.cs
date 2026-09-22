@@ -94,7 +94,7 @@ namespace ProyectoArqSoft.Pages
                 IdUsuario = idUsuario.Value
             });
 
-            if (resultado.IsSuccess == false)
+            if (!resultado.IsSuccess)
             {
                 Estado.MensajeError = resultado.Error;
 
