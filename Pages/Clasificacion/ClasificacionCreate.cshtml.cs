@@ -46,7 +46,7 @@ namespace ProyectoArqSoft.Pages
 
             Result resultado = clasificacionService.Crear(Nombre, Origen, Descripcion, idUsuario.Value);
 
-            if (resultado.IsSuccess == false)
+            if (!resultado.IsSuccess)
             {
                 Estado.MensajeError = resultado.Error;
                 return Page();

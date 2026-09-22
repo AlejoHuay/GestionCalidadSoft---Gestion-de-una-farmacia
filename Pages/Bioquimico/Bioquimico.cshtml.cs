@@ -30,7 +30,7 @@ namespace ProyectoArqSoft.Pages.Bioquimico
             Result resultado = FiltroHelper.ValidarFiltro(Estado.FiltroActual);
             Estado.MensajeError = resultado.Error;
 
-            if (resultado.IsSuccess == false)
+            if (!resultado.IsSuccess)
                 return Page();
 
             CargarBioquimicos(Estado.FiltroActual);
@@ -42,7 +42,7 @@ namespace ProyectoArqSoft.Pages.Bioquimico
             int? idSesion = HttpContext.Session.GetInt32("IdUsuario");
             Result resultado = usuarioService.EliminarUsuario(id, idSesion);
 
-            if (resultado.IsSuccess == false)
+            if (!resultado.IsSuccess)
             {
                 Estado.MensajeError = resultado.Error;
                 CargarBioquimicos(Estado.FiltroActual);

@@ -66,7 +66,7 @@ namespace ProyectoArqSoft.Application.Services
             medicamento.IdUsuario = idUsuario;
 
             var validacion = _validador.Validar(medicamento);
-            if (validacion.IsSuccess == false)
+            if (!validacion.IsSuccess)
                 return validacion;
 
             if (_repository.Insert(medicamento) <= 0)
@@ -89,7 +89,7 @@ namespace ProyectoArqSoft.Application.Services
             medicamentoActualizado.IdUsuario = medicamento.IdUsuario;
 
             var validacion = _validador.Validar(medicamentoActualizado);
-            if (validacion.IsSuccess == false)
+            if (!validacion.IsSuccess)
                 return validacion;
 
             if (_repository.Update(medicamentoActualizado) <= 0)
@@ -164,7 +164,7 @@ namespace ProyectoArqSoft.Application.Services
 
             Result validacion = _movimientoStockValidacion.Validar(movimiento);
 
-            if (validacion.IsSuccess == false)
+            if (!validacion.IsSuccess)
             {
                 return validacion;
             }

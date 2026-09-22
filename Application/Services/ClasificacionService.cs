@@ -42,7 +42,7 @@ namespace ProyectoArqSoft.Application.Services
             clasificacion.IdUsuario = idUsuario;
 
             Result validacion = _validador.Validar(clasificacion);
-            if (validacion.IsSuccess == false)
+            if (!validacion.IsSuccess)
                 return validacion;
             
             if (_repository.ExisteNombreActivo(clasificacion.Nombre))
@@ -60,7 +60,7 @@ namespace ProyectoArqSoft.Application.Services
             clasificacion.IdUsuario = idUsuario;
 
             Result validacion = _validador.Validar(clasificacion);
-            if (validacion.IsSuccess == false)
+            if (!validacion.IsSuccess)
                 return validacion;
 
             if (_repository.ExisteNombreActivoExcluyendoId(id, clasificacion.Nombre))
