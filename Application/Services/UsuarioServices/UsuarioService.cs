@@ -73,7 +73,7 @@ namespace ProyectoArqSoft.Application.Services
         public Result ActualizarUsuario(UsuarioActualizarDto dto, int? idUsuarioSesion)
         {
             // Usamos el validador general para validar la actualización
-            Result validacion = _validacionGeneral.ValidarActualizacion(dto);
+            Result validacion = UsuarioValidacionGeneral.ValidarActualizacion(dto);
             if (!validacion.IsSuccess)
                 return validacion;
 
