@@ -6,7 +6,7 @@ using ProyectoArqSoft.Application.Helpers; // Importamos el helper de conversió
 
 namespace ProyectoArqSoft.Application.Services
 {
-    public class ComprobanteVentaPdfService
+    public static class ComprobanteVentaPdfService
     {
         public static byte[] Generar(ComprobanteVentaPdfDto comprobante)
         {
