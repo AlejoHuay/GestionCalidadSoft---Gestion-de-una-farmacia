@@ -11,7 +11,7 @@ namespace ProyectoArqSoft.Pages
 
         public string? Usuario { get; set; }
         public DataTable MedicamentoDataTable { get; set; } = new DataTable();
-        public EstadisticasDTO TotalFarmacia { get; set; } = new EstadisticasDTO();
+        public EstadisticasDto TotalFarmacia { get; set; } = new EstadisticasDto();
 
         public IndexModel(IDashboardFacade dashboardFacade)
         {
@@ -22,7 +22,7 @@ namespace ProyectoArqSoft.Pages
         {
             Usuario = HttpContext.Session.GetString("UserName");
 
-            DashboardDTO dashboard = _dashboardFacade.ObtenerDashboardCompleto();
+            DashboardDto dashboard = _dashboardFacade.ObtenerDashboardCompleto();
 
             TotalFarmacia = dashboard.Estadisticas;
 

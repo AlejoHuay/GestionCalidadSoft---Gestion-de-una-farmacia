@@ -65,7 +65,7 @@ builder.Services.AddScoped<IRepository<MedicamentoEntidad>>(provider =>
 
 builder.Services.AddScoped<IResult<MedicamentoEntidad>, MedicamentoValidacion>();
 builder.Services.AddScoped<IMedicamentoService, MedicamentoService>();
-builder.Services.AddScoped<IResult<MovimientoStockDTO>, MovimientoStockValidacion>();
+builder.Services.AddScoped<IResult<MovimientoStockDto>, MovimientoStockValidacion>();
 
 
 // =========================

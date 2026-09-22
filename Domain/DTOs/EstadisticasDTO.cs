@@ -1,6 +1,6 @@
 namespace ProyectoArqSoft.Domain.DTOs
 {
-    public class EstadisticasDTO
+    public class EstadisticasDto
     {
         public int TotalMedicamentos { get; set; }
         public int TotalClientes { get; set; }

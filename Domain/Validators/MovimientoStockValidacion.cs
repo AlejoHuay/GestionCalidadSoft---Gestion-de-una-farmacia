@@ -3,9 +3,9 @@ using ProyectoArqSoft.Domain.DTOs;
 
 namespace ProyectoArqSoft.Domain.Validators
 {
-    public class MovimientoStockValidacion : IResult<MovimientoStockDTO>
+    public class MovimientoStockValidacion : IResult<MovimientoStockDto>
     {
-        public Result Validar(MovimientoStockDTO movimiento)
+        public Result Validar(MovimientoStockDto movimiento)
         {
             return ValidarIdMedicamento(movimiento.IdMedicamento)
                 ?? ValidarCantidad(movimiento.Cantidad)
@@ -42,7 +42,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarStockSuficiente(MovimientoStockDTO movimiento)
+        private Result? ValidarStockSuficiente(MovimientoStockDto movimiento)
         {
             if (movimiento.EsEntrada)
                 return null;

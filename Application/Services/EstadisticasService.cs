@@ -23,9 +23,9 @@ namespace ProyectoArqSoft.Application.Services
             _ventaRepo = ventaRepo;
         }
 
-        public EstadisticasDTO ObtenerEstadisticas()
+        public EstadisticasDto ObtenerEstadisticas()
         {
-            return new EstadisticasDTO
+            return new EstadisticasDto
             {
                 TotalMedicamentos = _medicamentoRepo.Count(),
                 TotalClientes = _clienteRepo.Count(),
