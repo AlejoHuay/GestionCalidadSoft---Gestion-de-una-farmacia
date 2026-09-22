@@ -14,7 +14,7 @@ namespace ProyectoArqSoft.Domain.Validators
                 ?? Result.Ok();
         }
 
-        private Result? ValidarNombre(string nombre)
+        private static Result? ValidarNombre(string nombre)
         {
             if (string.IsNullOrWhiteSpace(nombre))
                 return Result.Fail("El nombre de la clasificación es obligatorio.");
@@ -34,7 +34,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarOrigen(string origen)
+        private static Result? ValidarOrigen(string origen)
         {
             if (string.IsNullOrWhiteSpace(origen))
                 return Result.Fail("El origen es obligatorio.");
@@ -51,7 +51,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarDescripcion(string descripcion)
+        private static Result? ValidarDescripcion(string descripcion)
         {
             if (string.IsNullOrWhiteSpace(descripcion))
                 return Result.Fail("La descripción es obligatoria.");

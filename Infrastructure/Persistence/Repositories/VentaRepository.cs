@@ -474,7 +474,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Result.Ok();
         }
 
-        private Result ValidarVentaEditable(NpgsqlConnection connection, NpgsqlTransaction transaction, int idVenta)
+        private static Result ValidarVentaEditable(NpgsqlConnection connection, NpgsqlTransaction transaction, int idVenta)
         {
             string query = @"SELECT estado
                              FROM venta
@@ -507,7 +507,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             }
         }
 
-        private Result ValidarMedicamentosYStock(NpgsqlConnection connection, NpgsqlTransaction transaction, List<DetalleVenta> detalles)
+        private static Result ValidarMedicamentosYStock(NpgsqlConnection connection, NpgsqlTransaction transaction, List<DetalleVenta> detalles)
         {
             BloquearMedicamentos(connection, transaction, detalles);
             foreach (DetalleVenta detalle in detalles)
@@ -552,7 +552,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Result.Ok();
         }
 
-        private Result DescontarStock(NpgsqlConnection connection, NpgsqlTransaction transaction, int idMedicamento, int cantidad)
+        private static Result DescontarStock(NpgsqlConnection connection, NpgsqlTransaction transaction, int idMedicamento, int cantidad)
         {
             string query = @"UPDATE medicamento
                              SET stock = stock - @cantidad
@@ -572,7 +572,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Result.Ok();
         }
 
-        private bool ClienteActivo(NpgsqlConnection connection, NpgsqlTransaction transaction, int idCliente)
+        private static bool ClienteActivo(NpgsqlConnection connection, NpgsqlTransaction transaction, int idCliente)
         {
             string query = @"SELECT COUNT(*)
                              FROM cliente
@@ -585,7 +585,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             return Convert.ToInt32(command.ExecuteScalar()) > 0;
         }
 
-        private bool UsuarioActivo(NpgsqlConnection connection, NpgsqlTransaction transaction, int idUsuario)
+        private static bool UsuarioActivo(NpgsqlConnection connection, NpgsqlTransaction transaction, int idUsuario)
         {
             string query = @"SELECT COUNT(*)
                              FROM usuario

@@ -30,7 +30,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return ValidarNitLongitudYContenido(nit);
         }
 
-        private Result? ValidarNitObligatorioYEspacios(string nit)
+        private static Result? ValidarNitObligatorioYEspacios(string nit)
         {
             if (nit == null || nit.Length == 0)
                 return Result.Fail("El NIT es obligatorio.");
@@ -93,7 +93,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarRazonSocial(string razonSocial)
+        private static Result? ValidarRazonSocial(string razonSocial)
         {
             if (string.IsNullOrWhiteSpace(razonSocial))
                 return Result.Fail("La razon social es obligatoria.");
@@ -116,7 +116,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarCorreoElectronico(string? correoElectronico)
+        private static Result? ValidarCorreoElectronico(string? correoElectronico)
         {
             if (string.IsNullOrWhiteSpace(correoElectronico))
                 return null;

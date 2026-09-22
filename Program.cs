@@ -138,7 +138,6 @@ builder.Services.AddScoped<FachadaVenta>();
 builder.Services.AddScoped<FachadaAnular>();
 builder.Services.AddScoped<FachadaActualizarStock>();
 builder.Services.AddScoped<IVentaFacade, VentaFacade>();
-builder.Services.AddScoped<ComprobanteVentaPdfService>();
 
 
 //repos

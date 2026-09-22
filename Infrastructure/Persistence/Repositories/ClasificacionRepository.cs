@@ -165,7 +165,7 @@ namespace ProyectoArqSoft.Infrastructure.Persistence.Repositories
             }
         }
 
-        private string ConstruirQuery(string filtro)
+        private static string ConstruirQuery(string filtro)
         {
             string query = @"SELECT id,
                                     nombre,

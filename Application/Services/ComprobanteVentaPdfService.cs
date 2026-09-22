@@ -8,7 +8,7 @@ namespace ProyectoArqSoft.Application.Services
 {
     public class ComprobanteVentaPdfService
     {
-        public byte[] Generar(ComprobanteVentaPdfDto comprobante)
+        public static byte[] Generar(ComprobanteVentaPdfDto comprobante)
         {
             QuestPDF.Settings.License = LicenseType.Community;
 

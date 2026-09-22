@@ -79,7 +79,7 @@ namespace ProyectoArqSoft.Application.Services
             }
         }
 
-        private string ConstruirHtmlActivacionCuenta(
+        private static string ConstruirHtmlActivacionCuenta(
             string nombres,
             string userName,
             string passwordTemporal,
