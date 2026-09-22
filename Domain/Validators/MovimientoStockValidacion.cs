@@ -3,9 +3,9 @@ using ProyectoArqSoft.Domain.DTOs;
 
 namespace ProyectoArqSoft.Domain.Validators
 {
-    public class MovimientoStockValidacion : IResult<MovimientoStockDTO>
+    public class MovimientoStockValidacion : IResult<MovimientoStockDto>
     {
-        public Result Validar(MovimientoStockDTO movimiento)
+        public Result Validar(MovimientoStockDto movimiento)
         {
             return ValidarIdMedicamento(movimiento.IdMedicamento)
                 ?? ValidarCantidad(movimiento.Cantidad)
@@ -14,7 +14,7 @@ namespace ProyectoArqSoft.Domain.Validators
                 ?? Result.Ok();
         }
 
-        private Result? ValidarIdMedicamento(int idMedicamento)
+        private static Result? ValidarIdMedicamento(int idMedicamento)
         {
             if (idMedicamento <= 0)
                 return Result.Fail("El medicamento no es válido.");
@@ -22,7 +22,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarCantidad(int cantidad)
+        private static Result? ValidarCantidad(int cantidad)
         {
             if (cantidad <= 0)
                 return Result.Fail("La cantidad del movimiento debe ser mayor a cero.");
@@ -34,7 +34,7 @@ namespace ProyectoArqSoft.Domain.Validators
         }
 
 
-        private Result? ValidarStockActual(int stockActual)
+        private static Result? ValidarStockActual(int stockActual)
         {
             if (stockActual < 0)
                 return Result.Fail("El stock actual del medicamento no puede ser negativo.");
@@ -42,7 +42,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarStockSuficiente(MovimientoStockDTO movimiento)
+        private static Result? ValidarStockSuficiente(MovimientoStockDto movimiento)
         {
             if (movimiento.EsEntrada)
                 return null;

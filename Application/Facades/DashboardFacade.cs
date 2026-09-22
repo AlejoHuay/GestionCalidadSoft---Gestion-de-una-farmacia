@@ -17,9 +17,9 @@ namespace ProyectoArqSoft.Application.Facades
             _medicamentoService = medicamentoService;
         }
 
-        public DashboardDTO ObtenerDashboardCompleto()
+        public DashboardDto ObtenerDashboardCompleto()
         {
-            return new DashboardDTO
+            return new DashboardDto
             {
                 Estadisticas = _estadisticasService.ObtenerEstadisticas(),
                 MedicamentosDestacados = _medicamentoService.ObtenerDestacados()

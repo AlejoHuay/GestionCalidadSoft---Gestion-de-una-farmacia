@@ -28,14 +28,14 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarPresentacion(string presentacion)
+        private static Result? ValidarPresentacion(string presentacion)
         {
             return string.IsNullOrWhiteSpace(presentacion)
                 ? Result.Fail("La presentación es obligatoria.")
                 : null;
         }
 
-        private Result? ValidarIdClasificacion(int idClasificacion)
+        private static Result? ValidarIdClasificacion(int idClasificacion)
         {
             if (idClasificacion <= 0)
                 return Result.Fail("La clasificación es obligatoria.");
@@ -54,7 +54,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarPrecio(decimal precio)
+        private static Result? ValidarPrecio(decimal precio)
         {
             if (precio <= 0)
                 return Result.Fail("El precio debe ser mayor a 0 Bs.");
@@ -65,7 +65,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarStock(int stock)
+        private static Result? ValidarStock(int stock)
         {
             if (stock < 0)
                 return Result.Fail("El stock no puede ser negativo.");
@@ -76,13 +76,13 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private bool EsConcentracionValida(string concentracion)
+        private static bool EsConcentracionValida(string concentracion)
         {
             string patron = @"^\d+(\.\d+)?\s?(mg|g|mcg|ml|%)\s*(\/\s*(\d+(\.\d+)?)?\s?(ml|l))?$";
             return Regex.IsMatch(concentracion.Trim(), patron, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
         }
 
-        private bool EsNombreValido(string nombre)
+        private static bool EsNombreValido(string nombre)
         {
             nombre = nombre.Trim();
 

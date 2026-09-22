@@ -13,12 +13,12 @@ namespace ProyectoArqSoft.Application.Services
         private readonly IMedicamentoRepository _repository;
         private readonly IResult<Medicamento> _validador;
 
-        private readonly IResult<MovimientoStockDTO> _movimientoStockValidacion;
+        private readonly IResult<MovimientoStockDto> _movimientoStockValidacion;
 
         public MedicamentoService(
             IMedicamentoRepository repository,
             IResult<Medicamento> validador,
-            IResult<MovimientoStockDTO> movimientoStockValidacion)
+            IResult<MovimientoStockDto> movimientoStockValidacion)
         {
             _repository = repository;
             _validador = validador;
@@ -153,7 +153,7 @@ namespace ProyectoArqSoft.Application.Services
                 return Result.Fail("El medicamento no existe o no está activo.");
             }
 
-            MovimientoStockDTO movimiento = new MovimientoStockDTO
+            MovimientoStockDto movimiento = new MovimientoStockDto
             {
                 IdMedicamento = medicamento.Id,
                 Cantidad = cantidad,

@@ -17,7 +17,6 @@ namespace ProyectoArqSoft.Pages
         private readonly IVentaFacade ventaFacade;
         private readonly IClienteService clienteService;
         private readonly IMedicamentoService medicamentoService;
-        private readonly ComprobanteVentaPdfService comprobanteVentaPdfService;
 
         [BindProperty]
         public int IdCliente { get; set; }
@@ -47,13 +46,11 @@ namespace ProyectoArqSoft.Pages
         public VentaCreateModel(
             IVentaFacade ventaFacade,
             IClienteService clienteService,
-            IMedicamentoService medicamentoService,
-            ComprobanteVentaPdfService comprobanteVentaPdfService)
+            IMedicamentoService medicamentoService)
         {
             this.ventaFacade = ventaFacade;
             this.clienteService = clienteService;
             this.medicamentoService = medicamentoService;
-            this.comprobanteVentaPdfService = comprobanteVentaPdfService;
         }
 
         public void OnGet()
@@ -206,7 +203,7 @@ namespace ProyectoArqSoft.Pages
 
             comprobante.Total = comprobante.Detalles.Sum(x => x.Importe);
 
-            byte[] pdf = comprobanteVentaPdfService.Generar(comprobante);
+            byte[] pdf = ComprobanteVentaPdfService.Generar(comprobante);
 
             Response.Headers["X-Mensaje-Exito"] = "Venta registrada correctamente.";
             Response.Headers["X-Redirect-To"] =

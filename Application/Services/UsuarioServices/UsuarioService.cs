@@ -223,7 +223,7 @@ namespace ProyectoArqSoft.Application.Services
             };
         }
 
-        private void AplicarActualizacion(Usuario usuario, UsuarioActualizarDto dto)
+        private static void AplicarActualizacion(Usuario usuario, UsuarioActualizarDto dto)
         {
             if (!string.IsNullOrWhiteSpace(dto.Nombres))
                 usuario.Nombres = dto.Nombres;

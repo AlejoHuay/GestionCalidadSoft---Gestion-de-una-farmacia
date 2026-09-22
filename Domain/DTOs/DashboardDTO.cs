@@ -2,9 +2,9 @@
 
 namespace ProyectoArqSoft.Domain.DTOs
 {
-    public class DashboardDTO
+    public class DashboardDto
     {
-        public EstadisticasDTO Estadisticas { get; set; } = new();
+        public EstadisticasDto Estadisticas { get; set; } = new();
         public DataTable MedicamentosDestacados { get; set; } = new();
     }
 }

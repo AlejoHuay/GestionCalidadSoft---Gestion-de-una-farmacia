@@ -73,7 +73,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return Result.Ok();
         }
 
-        private Result? ValidarCamposObligatorios(string? nombres, string? apellidoPaterno, string? email)
+        private static Result? ValidarCamposObligatorios(string? nombres, string? apellidoPaterno, string? email)
         {
             if (string.IsNullOrWhiteSpace(nombres))
                 return Result.Fail("El campo Nombres es obligatorio.");
@@ -93,7 +93,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarCi(string? ci)
+        private static Result? ValidarCi(string? ci)
         {
             if (string.IsNullOrWhiteSpace(ci))
                 return Result.Fail("El número de carnet es obligatorio.");
@@ -107,7 +107,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarTelefono(string? telefono)
+        private static Result? ValidarTelefono(string? telefono)
         {
             if (string.IsNullOrWhiteSpace(telefono))
                 return Result.Fail("El teléfono es obligatorio.");
@@ -121,7 +121,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarEmail(string? email)
+        private static Result? ValidarEmail(string? email)
         {
             if (string.IsNullOrWhiteSpace(email))
                 return Result.Fail("El email es obligatorio.");
@@ -135,7 +135,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private Result? ValidarPassword(string? password)
+        private static Result? ValidarPassword(string? password)
         {
             if (string.IsNullOrWhiteSpace(password))
                 return Result.Fail("La contraseña es obligatoria.");
@@ -165,7 +165,7 @@ namespace ProyectoArqSoft.Domain.Validators
             return null;
         }
 
-        private string? LimpiarTexto(string? texto)
+        private static string? LimpiarTexto(string? texto)
         {
             return texto?.Trim();
         }
