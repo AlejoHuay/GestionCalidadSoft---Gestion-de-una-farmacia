@@ -51,7 +51,7 @@ namespace ProyectoArqSoft.Application.Services
                 Role = usuario.Role
             };
 
-            (Result resultado, string token) = _tokenService.GenerarToken(tokenGeneracionDto, out string? tokenPlano);
+            (Result resultado, string token) = _tokenService.GenerarToken(tokenGeneracionDto, out _);
 
             if (!resultado.IsSuccess) return resultado;
 

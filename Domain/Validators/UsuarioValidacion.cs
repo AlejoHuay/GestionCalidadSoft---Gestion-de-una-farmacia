@@ -20,7 +20,6 @@ namespace ProyectoArqSoft.Domain.Validators
 
             string? nombres = LimpiarTexto(dto.Nombres);
             string? apellidoPaterno = LimpiarTexto(dto.ApellidoPaterno);
-            string? apellidoMaterno = LimpiarTexto(dto.ApellidoMaterno);
             string? ci = LimpiarTexto(dto.Ci);
             string? telefono = LimpiarTexto(dto.Telefono);
             string? email = LimpiarTexto(dto.Email);
@@ -48,7 +47,6 @@ namespace ProyectoArqSoft.Domain.Validators
 
             string? nombres = LimpiarTexto(dto.Nombres);
             string? apellidoPaterno = LimpiarTexto(dto.ApellidoPaterno);
-            string? apellidoMaterno = LimpiarTexto(dto.ApellidoMaterno);
             string? ci = LimpiarTexto(dto.Ci);
             string? telefono = LimpiarTexto(dto.Telefono);
             string? email = LimpiarTexto(dto.Email);
