@@ -84,10 +84,10 @@ namespace ProyectoArqSoft.Domain.Validators
             if (string.IsNullOrWhiteSpace(email))
                 return Result.Fail("El campo Email es obligatorio.");
 
-            if (nombres!.Length > 100)
+            if (nombres.Length > 100)
                 return Result.Fail("El campo Nombres no puede exceder 100 caracteres.");
 
-            if (apellidoPaterno!.Length > 100)
+            if (apellidoPaterno.Length > 100)
                 return Result.Fail("El campo Apellido Paterno no puede exceder 100 caracteres.");
 
             return null;
@@ -98,7 +98,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (string.IsNullOrWhiteSpace(ci))
                 return Result.Fail("El número de carnet es obligatorio.");
 
-            if (ci!.Contains(' '))
+            if (ci.Contains(' '))
                 return Result.Fail("El número de carnet no debe contener espacios.");
 
             if (!Regex.IsMatch(ci, @"^\d{8}(?:-[A-Za-z0-9]{1,2})?$", RegexOptions.None, TimeSpan.FromSeconds(1)))
@@ -112,7 +112,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (string.IsNullOrWhiteSpace(telefono))
                 return Result.Fail("El teléfono es obligatorio.");
 
-            if (telefono!.Length != 8)
+            if (telefono.Length != 8)
                 return Result.Fail("El teléfono debe tener exactamente 8 dígitos.");
 
             if (!Regex.IsMatch(telefono, @"^\d{8}$", RegexOptions.None, TimeSpan.FromSeconds(1)))
@@ -126,10 +126,10 @@ namespace ProyectoArqSoft.Domain.Validators
             if (string.IsNullOrWhiteSpace(email))
                 return Result.Fail("El email es obligatorio.");
 
-            if (!Regex.IsMatch(email!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
+            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
                 return Result.Fail("El formato del email no es válido.");
 
-            if (email!.Length > 255)
+            if (email.Length > 255)
                 return Result.Fail("El email no puede exceder 255 caracteres.");
 
             return null;
@@ -140,7 +140,7 @@ namespace ProyectoArqSoft.Domain.Validators
             if (string.IsNullOrWhiteSpace(password))
                 return Result.Fail("La contraseña es obligatoria.");
 
-            if (password!.Length < 8)
+            if (password.Length < 8)
                 return Result.Fail("La contraseña debe tener al menos 8 caracteres.");
 
             if (password.Length > 128)

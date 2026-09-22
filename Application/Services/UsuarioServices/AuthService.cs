@@ -28,8 +28,8 @@ namespace ProyectoArqSoft.Application.Services
             if (!validacion.IsSuccess)
                 return validacion;
 
-            string emailOUserName = dto.EmailOUserName!.Trim();
-            string password = dto.Password!.Trim();
+            string emailOUserName = dto.EmailOUserName.Trim();
+            string password = dto.Password.Trim();
 
             Usuario? usuario = BuscarPorEmailOUserName(emailOUserName);
             if (usuario == null)
@@ -79,7 +79,7 @@ namespace ProyectoArqSoft.Application.Services
             if (string.IsNullOrWhiteSpace(dto.Password))
                 return Result.Fail("La contraseña es obligatoria.");
 
-            if (dto.Password!.Length < 8)
+            if (dto.Password.Length < 8)
                 return Result.Fail("La contraseña debe tener al menos 8 caracteres.");
 
             return Result.Ok();
