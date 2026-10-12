@@ -91,6 +91,23 @@ public class MedicamentoServiceQueryStockTests
         Assert.Equal("El medicamento no existe o no está activo.", result.Error);
     }
 
+    [Fact]
+    public void UpdateStock_propagates_validation_failure_without_updating()
+    {
+        var medicine = new Medicamento { Id = 14, Stock = 3 };
+        var repository = StubProxy<IMedicamentoRepository>.Create((method, arguments) =>
+            method.Name == nameof(IMedicamentoRepository.GetById) &&
+            Equals(arguments[0], 14)
+                ? medicine
+                : Unexpected(method));
+        var service = CreateService(repository, new MovimientoStockValidacion());
+
+        var result = service.UpdateStock(14, 5, false, 29);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Stock insuficiente para realizar la venta.", result.Error);
+    }
+
     private static MedicamentoService CreateService(
         IMedicamentoRepository repository,
         IResult<MovimientoStockDto>? movementValidator = null) =>
