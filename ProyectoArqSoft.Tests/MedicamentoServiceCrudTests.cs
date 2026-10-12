@@ -73,6 +73,46 @@ public class MedicamentoServiceCrudTests
         Assert.Equal("No se pudo registrar el medicamento.", result.Error);
     }
 
+    [Fact]
+    public void Actualizar_maps_dto_and_returns_success_when_repository_updates()
+    {
+        Medicamento? updated = null;
+        var repository = StubProxy<IMedicamentoRepository>.Create((method, arguments) =>
+        {
+            if (method.Name == nameof(IMedicamentoRepository.Update))
+            {
+                updated = Assert.IsType<Medicamento>(arguments[0]);
+                return 1;
+            }
+
+            return Unexpected(method);
+        });
+        var service = CreateService(repository, new MedicamentoValidacion());
+
+        var result = service.Actualizar(new MedicamentoActualizarDto
+        {
+            Id = 17,
+            Nombre = "  Ibuprofeno  ",
+            Presentacion = " Cápsulas ",
+            IdClasificacion = 3,
+            Concentracion = " 200 mg ",
+            Precio = 6.75m,
+            Stock = 25,
+            IdUsuario = 42
+        });
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(updated);
+        Assert.Equal(17, updated.Id);
+        Assert.Equal("Ibuprofeno", updated.Nombre);
+        Assert.Equal("Cápsulas", updated.Presentacion);
+        Assert.Equal(3, updated.IdClasificacion);
+        Assert.Equal("200 mg", updated.Concentracion);
+        Assert.Equal(6.75m, updated.Precio);
+        Assert.Equal(25, updated.Stock);
+        Assert.Equal(42, updated.IdUsuario);
+    }
+
     private static MedicamentoService CreateService(
         IMedicamentoRepository repository,
         IResult<Medicamento> medicineValidator) =>
