@@ -76,6 +76,21 @@ public class MedicamentoServiceQueryStockTests
             Assert.Equal("No se pudo eliminar el medicamento.", result.Error);
     }
 
+    [Fact]
+    public void UpdateStock_returns_not_found_without_validating_or_updating()
+    {
+        var repository = StubProxy<IMedicamentoRepository>.Create((method, _) =>
+            method.Name == nameof(IMedicamentoRepository.GetById)
+                ? null
+                : Unexpected(method));
+        var service = CreateService(repository);
+
+        var result = service.UpdateStock(14, 5, true, 29);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("El medicamento no existe o no está activo.", result.Error);
+    }
+
     private static MedicamentoService CreateService(
         IMedicamentoRepository repository,
         IResult<MovimientoStockDto>? movementValidator = null) =>
