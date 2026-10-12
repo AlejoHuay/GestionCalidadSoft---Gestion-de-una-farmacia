@@ -113,6 +113,29 @@ public class MedicamentoServiceCrudTests
         Assert.Equal(42, updated.IdUsuario);
     }
 
+    [Fact]
+    public void Actualizar_returns_validation_error_without_updating()
+    {
+        var repository = StubProxy<IMedicamentoRepository>.Create((method, _) =>
+            Unexpected(method));
+        var service = CreateService(repository, new MedicamentoValidacion());
+
+        var result = service.Actualizar(new MedicamentoActualizarDto
+        {
+            Id = 17,
+            Nombre = "",
+            Presentacion = "Cápsulas",
+            IdClasificacion = 3,
+            Concentracion = "200 mg",
+            Precio = 6.75m,
+            Stock = 25,
+            IdUsuario = 42
+        });
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("El nombre es obligatorio.", result.Error);
+    }
+
     private static MedicamentoService CreateService(
         IMedicamentoRepository repository,
         IResult<Medicamento> medicineValidator) =>
