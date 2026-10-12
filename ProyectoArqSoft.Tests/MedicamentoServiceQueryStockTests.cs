@@ -108,6 +108,60 @@ public class MedicamentoServiceQueryStockTests
         Assert.Equal("Stock insuficiente para realizar la venta.", result.Error);
     }
 
+    [Theory]
+    [InlineData(true, 1, true)]
+    [InlineData(false, 1, true)]
+    [InlineData(true, 0, false)]
+    public void UpdateStock_validates_movement_and_updates_repository(
+        bool isEntry,
+        int affectedRows,
+        bool expectedSuccess)
+    {
+        MovimientoStockDto? validatedMovement = null;
+        (int Id, int Quantity, bool IsEntry, int UserId)? repositoryUpdate = null;
+        var medicine = new Medicamento { Id = 14, Stock = 20 };
+        var repository = StubProxy<IMedicamentoRepository>.Create((method, arguments) =>
+        {
+            if (method.Name == nameof(IMedicamentoRepository.GetById) &&
+                Equals(arguments[0], 14))
+            {
+                return medicine;
+            }
+
+            if (method.Name == nameof(IMedicamentoRepository.UpdateStock))
+            {
+                repositoryUpdate = (
+                    (int)arguments[0]!,
+                    (int)arguments[1]!,
+                    (bool)arguments[2]!,
+                    (int)arguments[3]!);
+                return affectedRows;
+            }
+
+            return Unexpected(method);
+        });
+        var movementValidator = StubProxy<IResult<MovimientoStockDto>>.Create((method, arguments) =>
+        {
+            Assert.Equal(nameof(IResult<MovimientoStockDto>.Validar), method.Name);
+            validatedMovement = Assert.IsType<MovimientoStockDto>(arguments[0]);
+            return Result.Ok();
+        });
+        var service = CreateService(repository, movementValidator);
+
+        var result = service.UpdateStock(14, 5, isEntry, 29);
+
+        Assert.Equal(expectedSuccess, result.IsSuccess);
+        Assert.NotNull(validatedMovement);
+        Assert.Equal(14, validatedMovement.IdMedicamento);
+        Assert.Equal(5, validatedMovement.Cantidad);
+        Assert.Equal(isEntry, validatedMovement.EsEntrada);
+        Assert.Equal(29, validatedMovement.IdUsuario);
+        Assert.Equal(20, validatedMovement.StockActual);
+        Assert.Equal((14, 5, isEntry, 29), repositoryUpdate);
+        if (!expectedSuccess)
+            Assert.Equal("No se pudo actualizar el stock del medicamento.", result.Error);
+    }
+
     private static MedicamentoService CreateService(
         IMedicamentoRepository repository,
         IResult<MovimientoStockDto>? movementValidator = null) =>
