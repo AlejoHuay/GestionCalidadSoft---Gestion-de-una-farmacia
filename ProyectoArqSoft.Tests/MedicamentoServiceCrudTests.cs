@@ -60,6 +60,19 @@ public class MedicamentoServiceCrudTests
         Assert.Equal("El nombre es obligatorio.", result.Error);
     }
 
+    [Fact]
+    public void Crear_returns_failure_when_repository_does_not_insert()
+    {
+        var repository = StubProxy<IMedicamentoRepository>.Create((method, _) =>
+            method.Name == nameof(IMedicamentoRepository.Insert) ? 0 : Unexpected(method));
+        var service = CreateService(repository, new MedicamentoValidacion());
+
+        var result = service.Crear("Paracetamol", "Tabletas", 4, "500 mg", 2.5m, 20, 31);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("No se pudo registrar el medicamento.", result.Error);
+    }
+
     private static MedicamentoService CreateService(
         IMedicamentoRepository repository,
         IResult<Medicamento> medicineValidator) =>
