@@ -46,6 +46,36 @@ public class MedicamentoServiceQueryStockTests
             call => AssertCall(call, nameof(IMedicamentoRepository.GetDestacados)));
     }
 
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    public void EliminarLogicamente_returns_result_based_on_repository_rows(
+        int affectedRows,
+        bool expectedSuccess)
+    {
+        Medicamento? deleted = null;
+        var repository = StubProxy<IMedicamentoRepository>.Create((method, arguments) =>
+        {
+            if (method.Name == nameof(IMedicamentoRepository.Delete))
+            {
+                deleted = Assert.IsType<Medicamento>(arguments[0]);
+                return affectedRows;
+            }
+
+            return Unexpected(method);
+        });
+        var service = CreateService(repository);
+
+        var result = service.EliminarLogicamente(14, 29);
+
+        Assert.Equal(expectedSuccess, result.IsSuccess);
+        Assert.NotNull(deleted);
+        Assert.Equal(14, deleted.Id);
+        Assert.Equal(29, deleted.IdUsuario);
+        if (!expectedSuccess)
+            Assert.Equal("No se pudo eliminar el medicamento.", result.Error);
+    }
+
     private static MedicamentoService CreateService(
         IMedicamentoRepository repository,
         IResult<MovimientoStockDto>? movementValidator = null) =>
